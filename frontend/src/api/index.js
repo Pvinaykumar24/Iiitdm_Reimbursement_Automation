@@ -18,9 +18,12 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-  login:    (data) => api.post('/auth/login', data),
-  register: (data) => api.post('/auth/register', data),
-  me:       ()     => api.get('/auth/me'),
+  login:               (data) => api.post('/auth/login', data),
+  register:            (data) => api.post('/auth/register', data),
+  me:                  ()     => api.get('/auth/me'),
+  sendOtp:             (data) => api.post('/auth/register/send-otp', data),
+  verifyOtp:           (data) => api.post('/auth/register/verify-otp', data),
+  completeRegistration:(data) => api.post('/auth/register/complete', data),
 };
 
 export const claimsApi = {

@@ -88,11 +88,42 @@ const submitClaim = async (claimId, facultyId) => {
   if (!rows.length) throw Object.assign(new Error('Claim not found or already submitted'), { status: 404 });
   const claim = rows[0];
 
-  const items = await db.query(
-    'SELECT COUNT(*) FROM claim_items WHERE claim_id=$1', [claimId]
+  // ── Validate bill items ──────────────────────────────────────────────────────
+  const itemsRes = await db.query(
+    'SELECT * FROM claim_items WHERE claim_id=$1 ORDER BY item_order', [claimId]
   );
-  if (parseInt(items.rows[0].count) === 0)
+  if (itemsRes.rows.length === 0)
     throw Object.assign(new Error('Cannot submit a claim with no bill items'), { status: 400 });
+
+  const today = Date.now();
+  for (const item of itemsRes.rows) {
+    const billAge = (today - new Date(item.bill_date)) / (1000 * 60 * 60 * 24);
+    if (billAge > 60)
+      throw Object.assign(
+        new Error(`Bill #${item.bill_no} (${item.vendor_name}) is older than 60 days and cannot be reimbursed`),
+        { status: 400 }
+      );
+    if (parseFloat(item.total_amount) > 25000)
+      throw Object.assign(
+        new Error(`Bill #${item.bill_no} (${item.vendor_name}) exceeds the ₹25,000 per-bill limit`),
+        { status: 400 }
+      );
+  }
+
+  // ── Validate project belongs to faculty and is active ───────────────────────
+  const projRes = await db.query(
+    `SELECT p.id, bh.id AS bh_id
+     FROM projects p
+     JOIN budget_heads bh ON bh.project_id=p.id AND bh.id=$1
+     WHERE p.id=$2 AND p.pi_id=$3 AND p.is_active=true`,
+    [claim.budget_head_id, claim.project_id, facultyId]
+  );
+  if (!projRes.rows.length)
+    throw Object.assign(
+      new Error('Project or budget head is invalid / no longer active'),
+      { status: 400 }
+    );
+  // ────────────────────────────────────────────────────────────────────────────
 
   await db.query(
     `UPDATE claims SET status='DEAN_PENDING', submitted_at=NOW(), updated_at=NOW() WHERE id=$1`,
@@ -192,7 +223,7 @@ const getDecidedByDean = async () => {
      JOIN users u ON u.id=c.faculty_id
      LEFT JOIN projects p ON p.id=c.project_id
      LEFT JOIN budget_heads bh ON bh.id=c.budget_head_id
-     LEFT JOIN approvals a ON a.claim_id=c.id AND a.approver_role='DEAN'
+     LEFT JOIN approvals a ON a.claim_id=c.id AND a.stage='DEAN_REVIEW'
      LEFT JOIN users actor ON actor.id=a.actor_id
      WHERE c.status IN ('DEAN_APPROVED','DEAN_REJECTED','ACCOUNTS_PENDING','PROCESSED')
      ORDER BY a.acted_at DESC NULLS LAST`

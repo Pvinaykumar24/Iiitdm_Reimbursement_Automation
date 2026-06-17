@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 
@@ -56,6 +56,12 @@ export default function Login() {
               <div style={{ fontWeight: 500, marginBottom: 4 }}>Demo accounts (password: Password@123)</div>
               <div>Faculty: karthick@iiitdm.ac.in</div>
               <div>Dean SR: dean@iiitdm.ac.in</div>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 14, fontSize: 13, color: '#888' }}>
+              New faculty?{' '}
+              <Link to="/register" style={{ color: '#534AB7', fontWeight: 500, textDecoration: 'none' }}>
+                Create an account →
+              </Link>
             </div>
           </div>
         </div>

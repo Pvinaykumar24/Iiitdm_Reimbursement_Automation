@@ -17,6 +17,7 @@ export default function AllClaims() {
   const [decided, setDecided]   = useState([]);
   const [filter, setFilter]     = useState('ALL');
   const [loading, setLoading]   = useState(true);
+  const [fetchError, setFetchError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,18 +25,22 @@ export default function AllClaims() {
       claimsApi.getPendingDean(),
       claimsApi.getDecidedDean(),
     ]).then(([p, d]) => {
-      setPending(p.data);
-      setDecided(d.data);
-    }).catch(console.error).finally(() => setLoading(false));
+      setPending(Array.isArray(p.data) ? p.data : []);
+      setDecided(Array.isArray(d.data) ? d.data : []);
+    }).catch(err => {
+      console.error(err);
+      setFetchError(err.response?.data?.message || 'Failed to load claims data');
+    }).finally(() => setLoading(false));
   }, []);
 
   const allClaims = [
-    ...pending.map(c => ({ ...c, _tab: 'PENDING' })),
+    ...pending.map(c => ({ ...c, _tab: 'PENDING', _sortDate: c.submitted_at })),
     ...decided.map(c => ({
       ...c,
       _tab: (c.status === 'DEAN_REJECTED') ? 'REJECTED' : 'APPROVED',
+      _sortDate: c.decided_at || c.submitted_at,
     })),
-  ];
+  ].sort((a, b) => new Date(b._sortDate || 0) - new Date(a._sortDate || 0));
 
   const filtered = filter === 'ALL'
     ? allClaims
@@ -58,6 +63,12 @@ export default function AllClaims() {
   return (
     <>
       <h1 className="page-title">All Claims</h1>
+
+      {fetchError && (
+        <div className="alert alert-error" style={{ marginBottom: 16 }}>
+          <i className="ti ti-alert-circle" /> {fetchError}
+        </div>
+      )}
 
       {/* Summary stat cards */}
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: 20 }}>

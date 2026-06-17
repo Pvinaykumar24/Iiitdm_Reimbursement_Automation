@@ -11,7 +11,7 @@ const sendNotification = async (userId, claimId, message) => {
 const sendEmail = async ({ to, subject, html }) => {
   try {
     await transporter.sendMail({
-      from: '"IIITDM Reimbursement Portal" <noreply@iiitdm.ac.in>',
+      from: `"IIITDM Reimbursement Portal" <${process.env.SMTP_USER}>`,
       to, subject, html,
     });
   } catch (err) {

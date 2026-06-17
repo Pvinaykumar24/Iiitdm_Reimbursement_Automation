@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 
-import LoginPage from './pages/auth/Login';
+import LoginPage    from './pages/auth/Login';
+import RegisterPage from './pages/auth/Register';
 import FacultyLayout from './components/layout/FacultyLayout';
 import DeanLayout from './components/layout/DeanLayout';
 
@@ -37,7 +38,8 @@ export default function App() {
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/"      element={<RoleRedirect />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login"    element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         <Route path="/faculty" element={
           <ProtectedRoute role="FACULTY"><FacultyLayout /></ProtectedRoute>
