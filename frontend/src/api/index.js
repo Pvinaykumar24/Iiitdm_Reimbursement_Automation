@@ -9,10 +9,68 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
-    if (err.response?.status === 401) useAuthStore.getState().logout();
+  async (err) => {
+    const originalRequest = err.config;
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      if (originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/login')) {
+        useAuthStore.getState().logout();
+        return Promise.reject(err);
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch(err => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const rToken = useAuthStore.getState().refreshToken;
+      if (!rToken) {
+        useAuthStore.getState().logout();
+        isRefreshing = false;
+        return Promise.reject(err);
+      }
+
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, { refresh_token: rToken });
+        const { token, refreshToken: newRToken } = response.data;
+        useAuthStore.getState().setAuth(useAuthStore.getState().user, token, newRToken || rToken);
+        processQueue(null, token);
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return api(originalRequest);
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        useAuthStore.getState().logout();
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
+    }
     return Promise.reject(err);
   }
 );
@@ -42,6 +100,7 @@ export const claimsApi = {
   getPendingDean:  ()               => api.get('/claims/pending-dean'),
   getDecidedDean:  ()               => api.get('/claims/decided-dean'),
   getAllClaims:    (params)         => api.get('/claims/all', { params }),
+  getBudgetSummary:(params)         => api.get('/claims/budget-summary', { params }),
   getFacultyProfile:(id)            => api.get(`/claims/faculty-profile/${id}`),
   deleteDraft:     (id)             => api.delete(`/claims/${id}`),
 };

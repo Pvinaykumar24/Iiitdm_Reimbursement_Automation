@@ -32,5 +32,9 @@ const completeReg = async (req, res, next) => {
   try { res.status(201).json(await service.completeRegistration(req.body)); }
   catch (err) { next(err); }
 };
+const refreshToken = async (req, res, next) => {
+  try { res.json(await service.refreshToken(req.body)); }
+  catch (err) { next(err); }
+};
 
-module.exports = { register, login, getMe, getProfile, updateProfile, sendOtp, verifyOtp, completeReg };
+module.exports = { register, login, getMe, getProfile, updateProfile, sendOtp, verifyOtp, completeReg, refreshToken };

@@ -17,6 +17,7 @@ export default function SricLayout() {
         <NavLink to="/sric"         end className={({isActive}) => `sidebar-item${isActive?' active':''}`}><i className="ti ti-layout-dashboard" />Overview</NavLink>
         <NavLink to="/sric/pending"    className={({isActive}) => `sidebar-item${isActive?' active':''}`}><i className="ti ti-clock" />Pending claims</NavLink>
         <NavLink to="/sric/all-claims" className={({isActive}) => `sidebar-item${isActive?' active':''}`}><i className="ti ti-files" />All claims</NavLink>
+        <NavLink to="/sric/budget"     className={({isActive}) => `sidebar-item${isActive?' active':''}`}><i className="ti ti-report-money" />Budget Classification</NavLink>
         <div style={{ marginTop: 'auto', borderTop: '1px solid #e5e5e3', padding: '12px 0' }}>
           <div className="sidebar-item" onClick={handleLogout}><i className="ti ti-logout" />Sign out</div>
         </div>

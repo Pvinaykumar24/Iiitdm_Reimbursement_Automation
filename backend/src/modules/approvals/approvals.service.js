@@ -169,6 +169,14 @@ const deanDecision = async (claimId, deanId, action, remarks) => {
           [a.id, claimId, `Claim ${claim.claim_no} recommended and forwarded by Dean — pending your processing.`]
         );
       }
+    } else {
+      const srics = await client.query(`SELECT id FROM users WHERE role='SRIC' AND is_active=true`);
+      for (const s of srics.rows) {
+        await client.query(
+          'INSERT INTO notifications (user_id, claim_id, message) VALUES ($1,$2,$3)',
+          [s.id, claimId, `Claim ${claim.claim_no} was rejected by Dean SR. Reason: ${remarks}`]
+        );
+      }
     }
 
     await client.query('COMMIT');

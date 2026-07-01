@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import ToastContainer from './components/common/ToastContainer';
 
 import LoginPage    from './pages/auth/Login';
 import RegisterPage from './pages/auth/Register';
@@ -25,6 +26,7 @@ import DeanPendingClaims from './pages/dean/PendingClaims';
 import DeanAllClaims     from './pages/dean/AllClaims';
 import DeanClaimReview   from './pages/dean/ClaimReview';
 import DeanFacultyProfileView from './pages/dean/FacultyProfile';
+import BudgetClassification from './pages/shared/BudgetClassification';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, token } = useAuthStore();
@@ -46,6 +48,7 @@ const RoleRedirect = () => {
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ToastContainer />
       <Routes>
         <Route path="/"      element={<RoleRedirect />} />
         <Route path="/login"    element={<LoginPage />} />
@@ -69,6 +72,7 @@ export default function App() {
           <Route path="all-claims" element={<SricAllClaims />} />
           <Route path="claims/:id" element={<SricClaimReview />} />
           <Route path="faculty/:id" element={<FacultyProfileView />} />
+          <Route path="budget"     element={<BudgetClassification />} />
         </Route>
 
         <Route path="/dean" element={
@@ -79,6 +83,7 @@ export default function App() {
           <Route path="all-claims" element={<DeanAllClaims />} />
           <Route path="claims/:id" element={<DeanClaimReview />} />
           <Route path="faculty/:id" element={<DeanFacultyProfileView />} />
+          <Route path="budget"     element={<BudgetClassification />} />
         </Route>
       </Routes>
     </BrowserRouter>

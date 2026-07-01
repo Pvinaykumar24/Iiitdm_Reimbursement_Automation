@@ -131,7 +131,7 @@ export default function Register() {
     setError(''); setLoading(true);
     try {
       const { data } = await authApi.completeRegistration({ email, password });
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.refreshToken);
       navigate('/faculty');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');

@@ -24,9 +24,14 @@ export default function DeanAllClaims() {
   const [fetchError, setFetchError] = useState('');
   const navigate = useNavigate();
 
-  const fetchClaims = useCallback((query = '') => {
+  const today = new Date().toISOString().split('T')[0];
+  const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const [startDate, setStartDate] = useState(oneMonthAgo);
+  const [endDate, setEndDate] = useState(today);
+
+  const fetchClaims = useCallback((query = '', sd, ed) => {
     setLoading(true);
-    claimsApi.getAllClaims({ search: query })
+    claimsApi.getAllClaims({ search: query, startDate: sd, endDate: ed })
       .then(res => {
         setClaims(Array.isArray(res.data) ? res.data : []);
       })
@@ -39,16 +44,16 @@ export default function DeanAllClaims() {
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      fetchClaims(search);
+      fetchClaims(search, startDate, endDate);
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [search, fetchClaims]);
+  }, [search, startDate, endDate, fetchClaims]);
 
   const getClaimTab = (status) => {
-    if (['SRIC_PENDING', 'DEAN_PENDING', 'ACCOUNTS_PENDING'].includes(status)) return 'PENDING';
-    if (['SRIC_VERIFIED', 'DEAN_FORWARDED', 'PROCESSED'].includes(status)) return 'APPROVED';
-    if (['SRIC_REJECTED', 'DEAN_REJECTED'].includes(status)) return 'REJECTED';
+    if (status === 'DEAN_PENDING') return 'PENDING';
+    if (['DEAN_FORWARDED', 'PROCESSED'].includes(status)) return 'APPROVED';
+    if (['DEAN_REJECTED', 'SRIC_PENDING', 'SRIC_REJECTED'].includes(status)) return 'REJECTED';
     return 'ALL';
   };
 
@@ -65,7 +70,7 @@ export default function DeanAllClaims() {
   };
 
   const filterMeta = {
-    ALL:      { icon: 'ti-list',         color: '#534AB7' },
+    ALL:      { icon: 'ti-files',        color: '#3C3489' },
     PENDING:  { icon: 'ti-clock',        color: '#633806' },
     APPROVED: { icon: 'ti-circle-check', color: '#27500A' },
     REJECTED: { icon: 'ti-circle-x',     color: '#791F1F' },
@@ -73,18 +78,34 @@ export default function DeanAllClaims() {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <h1 className="page-title" style={{ margin: 0 }}>All Claims</h1>
         <div style={{ position: 'relative', width: 320 }}>
           <i className="ti ti-search" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#888' }} />
           <input
             type="text"
-            placeholder="Search claims, faculty name, dept..."
+            placeholder="Search claim no, faculty, ID..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ paddingLeft: 34, background: '#fff', border: '1px solid #d4d4d0' }}
           />
         </div>
+      </div>
+
+      {/* Date Range Filters */}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20, fontSize: 13 }}>
+        <span style={{ color: '#888', fontWeight: 500 }}>
+          <i className="ti ti-calendar-event" style={{ marginRight: 4 }} />From
+        </span>
+        <input type="date" value={startDate} max={today} onChange={e => setStartDate(e.target.value)}
+          style={{ padding: '6px 10px', border: '1px solid #d4d4d0', borderRadius: 6, fontSize: 12, background: '#fff' }} />
+        <span style={{ color: '#888', fontWeight: 500 }}>To</span>
+        <input type="date" value={endDate} max={today} onChange={e => setEndDate(e.target.value)}
+          style={{ padding: '6px 10px', border: '1px solid #d4d4d0', borderRadius: 6, fontSize: 12, background: '#fff' }} />
+        <button className="btn btn-ghost btn-sm" onClick={() => { setStartDate(oneMonthAgo); setEndDate(today); }}
+          style={{ fontSize: 11 }}>
+          Reset to 1 month
+        </button>
       </div>
 
       {fetchError && (
@@ -158,7 +179,7 @@ export default function DeanAllClaims() {
               <tr>
                 <th>Claim no.</th>
                 <th>Faculty</th>
-                <th>Dept</th>
+                <th>Faculty ID</th>
                 <th>Project</th>
                 <th>Purpose</th>
                 <th>Amount</th>
@@ -178,7 +199,7 @@ export default function DeanAllClaims() {
                         {c.faculty_name}
                       </span>
                     </td>
-                    <td style={{ fontSize: 12, color: '#888' }}>{c.department || '—'}</td>
+                    <td style={{ fontSize: 12, color: '#888' }}>{c.employee_id || '—'}</td>
                     <td style={{ fontSize: 12 }}>{c.project_no || '—'}</td>
                     <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12 }}>
                       {c.purpose}

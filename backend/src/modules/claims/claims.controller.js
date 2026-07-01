@@ -12,12 +12,13 @@ const pendingForSric = async (req, res, next) => { try { res.json(await service.
 const decidedForSric = async (req, res, next) => { try { res.json(await service.getDecidedBySric()); } catch(e){next(e)} };
 const pendingForDean = async (req, res, next) => { try { res.json(await service.getPendingForDean()); } catch(e){next(e)} };
 const decidedClaims  = async (req, res, next) => { try { res.json(await service.getDecidedByDean()); } catch(e){next(e)} };
-const getAllClaims   = async (req, res, next) => { try { res.json(await service.getAllClaims(req.query.search)); } catch(e){next(e)} };
+const getAllClaims   = async (req, res, next) => { try { res.json(await service.getAllClaims(req.query.search, req.user.id, req.user.role, req.query.startDate, req.query.endDate)); } catch(e){next(e)} };
 const getFacultyProfile = async (req, res, next) => { try { res.json(await service.getFacultyProfile(req.params.facultyId)); } catch(e){next(e)} };
 const deleteDraft    = async (req, res, next) => { try { res.json(await service.deleteDraft(req.params.id, req.user.id)); } catch(e){next(e)} };
+const budgetSummary  = async (req, res, next) => { try { res.json(await service.getBudgetSummary(req.query.startDate, req.query.endDate)); } catch(e){next(e)} };
 
 module.exports = {
   createClaim, editDraftClaim, addItem, removeItem, clearItems, submitClaim,
   myClaims, getClaimById, pendingForSric, decidedForSric, pendingForDean,
-  decidedClaims, getAllClaims, getFacultyProfile, deleteDraft
+  decidedClaims, getAllClaims, getFacultyProfile, deleteDraft, budgetSummary
 };

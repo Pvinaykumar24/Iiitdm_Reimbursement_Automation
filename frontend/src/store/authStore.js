@@ -6,8 +6,13 @@ export const useAuthStore = create(
     (set) => ({
       user: null,
       token: null,
-      setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      refreshToken: null,
+      setAuth: (user, token, refreshToken = null) => set((state) => ({
+        user,
+        token,
+        refreshToken: refreshToken || state.refreshToken
+      })),
+      logout: () => set({ user: null, token: null, refreshToken: null }),
     }),
     { name: 'iiitdm-auth' }
   )

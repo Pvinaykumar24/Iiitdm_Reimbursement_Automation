@@ -15,15 +15,15 @@ const groupItemsByInvoice = (items = []) => {
         bill_no: it.bill_no,
         bill_date: it.bill_date ? new Date(it.bill_date).toISOString().split('T')[0] : '',
         gstin_vendor: it.gstin_vendor || '',
-        cgst_percent: parseFloat(it.cgst_percent || 0),
-        sgst_percent: parseFloat(it.sgst_percent || 0),
-        igst_percent: parseFloat(it.igst_percent || 0),
-        other_charges: parseFloat(it.other_charges || 0),
+        cgst_percent: parseFloat(it.cgst_percent) || '',
+        sgst_percent: parseFloat(it.sgst_percent) || '',
+        igst_percent: parseFloat(it.igst_percent) || '',
+        other_charges: parseFloat(it.other_charges) || '',
         products: []
       };
     }
 
-    const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
+    const base = parseFloat(it.unit_price || 0) * (parseInt(it.quantity) || 0);
     const cgst = base * parseFloat(it.cgst_percent || 0) / 100;
     const sgst = base * parseFloat(it.sgst_percent || 0) / 100;
     const igst = base * parseFloat(it.igst_percent || 0) / 100;
@@ -42,7 +42,7 @@ const groupItemsByInvoice = (items = []) => {
 
 const EMPTY_PRODUCT = {
   description: '',
-  quantity: 1,
+  quantity: '',
   quantity_unit: 'pcs',
   unit_price: '',
   total_amount: 0
@@ -53,15 +53,15 @@ const EMPTY_INVOICE = {
   bill_no: '',
   bill_date: '',
   gstin_vendor: '',
-  cgst_percent: 0,
-  sgst_percent: 0,
-  igst_percent: 0,
-  other_charges: 0,
+  cgst_percent: '',
+  sgst_percent: '',
+  igst_percent: '',
+  other_charges: '',
   products: [{ ...EMPTY_PRODUCT }]
 };
 
 const calcProductTotal = (prod, inv) => {
-  const base = parseFloat(prod.unit_price || 0) * parseInt(prod.quantity || 1);
+  const base = parseFloat(prod.unit_price || 0) * (parseInt(prod.quantity) || 0);
   const cgst = base * parseFloat(inv.cgst_percent || 0) / 100;
   const sgst = base * parseFloat(inv.sgst_percent || 0) / 100;
   const igst = base * parseFloat(inv.igst_percent || 0) / 100;
@@ -242,11 +242,11 @@ export default function NewClaim() {
           <div key={i} style={{
             display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,
             padding: '4px 12px', borderRadius: 20,
-            background: step === i+1 ? '#EEEDFE' : step > i+1 ? '#EAF3DE' : '#f5f5f4',
-            color: step === i+1 ? '#3C3489' : step > i+1 ? '#27500A' : '#888',
-            fontWeight: step === i+1 ? 500 : 400
+            background: step === i + 1 ? '#EEEDFE' : step > i + 1 ? '#EAF3DE' : '#f5f5f4',
+            color: step === i + 1 ? '#3C3489' : step > i + 1 ? '#27500A' : '#888',
+            fontWeight: step === i + 1 ? 500 : 400
           }}>
-            {step > i+1 ? <i className="ti ti-check" /> : <span>{i+1}</span>}
+            {step > i + 1 ? <i className="ti ti-check" /> : <span>{i + 1}</span>}
             {label}
           </div>
         ))}
@@ -322,7 +322,7 @@ export default function NewClaim() {
                 )}
               </div>
               <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                
+
                 {/* Header Info */}
                 <div className="form-row form-row-4">
                   <div className="form-group">
@@ -346,7 +346,7 @@ export default function NewClaim() {
                 {/* Products Section */}
                 <div style={{ background: '#fcfcfb', border: '1px dashed #d4d4d0', borderRadius: 8, padding: '12px 14px' }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#534AB7', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Products / Items</div>
-                  
+
                   {inv.products.map((prod, pIdx) => (
                     <div key={pIdx} style={{ display: 'grid', gridTemplateColumns: '30px 2fr 80px 100px 120px 100px 40px', gap: 10, alignItems: 'center', marginBottom: 8 }}>
                       <div style={{ textAlign: 'center', fontWeight: 500, fontSize: 13, color: '#666' }}>{pIdx + 1}</div>
@@ -378,7 +378,7 @@ export default function NewClaim() {
                       </div>
                     </div>
                   ))}
-                  
+
                   <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 6, background: '#fff' }} onClick={() => addProduct(idx)}>
                     <i className="ti ti-plus" style={{ marginRight: 4 }} /> Add new item
                   </button>
@@ -407,12 +407,12 @@ export default function NewClaim() {
                 {/* Calculation Info */}
                 <div style={{ fontSize: 12, color: '#666', background: '#fafaf9', padding: '10px 14px', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    Products Base: ₹{inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)), 0).toFixed(2)} · 
+                    Products Base: ₹{inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0).toFixed(2)} ·
                     GST: ₹{inv.products.reduce((sum, p) => {
-                      const base = parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1);
+                      const base = parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0);
                       const tax = base * (parseFloat(inv.cgst_percent || 0) + parseFloat(inv.sgst_percent || 0) + parseFloat(inv.igst_percent || 0)) / 100;
                       return sum + tax;
-                    }, 0).toFixed(2)} · 
+                    }, 0).toFixed(2)} ·
                     Other charges: ₹{parseFloat(inv.other_charges || 0).toFixed(2)}
                   </div>
                   <div>
@@ -432,7 +432,7 @@ export default function NewClaim() {
 
           <div style={{ background: '#EEEDFE', borderRadius: 8, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 11, color: '#534AB7' }}>Claim total ({totalItemsCount} item{totalItemsCount>1?'s':''})</div>
+              <div style={{ fontSize: 11, color: '#534AB7' }}>Claim total ({totalItemsCount} item{totalItemsCount > 1 ? 's' : ''})</div>
               <div style={{ fontSize: 22, fontWeight: 500, color: '#26215C' }}>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -459,9 +459,9 @@ export default function NewClaim() {
           <div style={{ fontSize: 14, fontWeight: 600, color: '#444', marginBottom: 10 }}>Invoices List</div>
 
           {invoices.map((inv, idx) => {
-            const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)), 0);
+            const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0);
             const invGst = inv.products.reduce((sum, p) => {
-              const base = parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1);
+              const base = parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0);
               const tax = base * (parseFloat(inv.cgst_percent || 0) + parseFloat(inv.sgst_percent || 0) + parseFloat(inv.igst_percent || 0)) / 100;
               return sum + tax;
             }, 0);
@@ -502,7 +502,7 @@ export default function NewClaim() {
                     </tbody>
                   </table>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#666' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#1a1a1a', fontWeight: '600' }}>
                     <div>Base Amount: ₹{invBase.toFixed(2)}</div>
                     {(parseFloat(inv.cgst_percent) > 0 || parseFloat(inv.sgst_percent) > 0 || parseFloat(inv.igst_percent) > 0) && (
                       <div>
@@ -514,7 +514,7 @@ export default function NewClaim() {
                       </div>
                     )}
                     {parseFloat(inv.other_charges) > 0 && <div>Other Charges: ₹{parseFloat(inv.other_charges).toFixed(2)}</div>}
-                    <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 600, marginTop: 4 }}>
+                    <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 700, marginTop: 4 }}>
                       Invoice Total: ₹{invTotal.toFixed(2)}
                     </div>
                   </div>
@@ -530,7 +530,7 @@ export default function NewClaim() {
             </div>
           </div>
 
-          <div className="alert alert-info"><i className="ti ti-info-circle" />Once submitted, this claim will be forwarded to Dean SR for review. Attach physical bills to the printed copy and submit to the Dean office.</div>
+          <div className="alert alert-info"><i className="ti ti-info-circle" />Once submitted, this claim will be forwarded to SRIC SECTION for review. Submit physical bills to the SRIC SECTION for further processing.</div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button className="btn btn-ghost" onClick={() => setStep(2)}>← Edit items</button>
             <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>{loading ? 'Submitting...' : 'Submit claim →'}</button>

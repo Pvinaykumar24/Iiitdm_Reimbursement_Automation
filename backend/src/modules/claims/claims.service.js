@@ -4,11 +4,11 @@ const { sendNotification } = require('../notifications/notifications.service');
 const VALID_BUDGET_HEADS = ['Consumable', 'Contingency', 'Travel', 'Equipment', 'Others', 'Accountable Consumable'];
 
 const generateClaimNo = async () => {
-  const yr = new Date().getFullYear();
+  const yr = new Date().getFullYear().toString().slice(-2);
   const { rows } = await db.query(
     `SELECT COUNT(*) FROM claims WHERE claim_no LIKE $1`, [`CLM-${yr}-%`]
   );
-  const seq = String(parseInt(rows[0].count) + 1).padStart(4, '0');
+  const seq = String(parseInt(rows[0].count) + 1).padStart(5, '0');
   return `CLM-${yr}-${seq}`;
 };
 
@@ -16,11 +16,10 @@ const createClaim = async (facultyId, { project_no, purpose }) => {
   if (!project_no || !project_no.trim())
     throw Object.assign(new Error('Project number / name is required'), { status: 400 });
 
-  const claimNo = await generateClaimNo();
   const { rows } = await db.query(
     `INSERT INTO claims (claim_no, faculty_id, project_no, budget_head, purpose, total_amount, status)
      VALUES ($1,$2,$3,$4,$5,0,'DRAFT') RETURNING *`,
-    [claimNo, facultyId, project_no.trim(), null, purpose]
+    [null, facultyId, project_no.trim(), null, purpose]
   );
   return rows[0];
 };
@@ -125,25 +124,35 @@ const submitClaim = async (claimId, facultyId) => {
       );
   }
 
+  const isResubmit = ['SRIC_REJECTED', 'DEAN_REJECTED'].includes(claim.status);
+  const nextVer = isResubmit ? (claim.version || 1) + 1 : (claim.version || 1);
+
+  let claimNo = claim.claim_no;
+  if (!claimNo) {
+    claimNo = await generateClaimNo();
+  }
+
   await db.query(
-    `UPDATE claims SET status='SRIC_PENDING', submitted_at=NOW(), updated_at=NOW() WHERE id=$1`,
-    [claimId]
+    `UPDATE claims SET status='SRIC_PENDING', claim_no=$3, submitted_at=NOW(), updated_at=NOW(), version=$2 WHERE id=$1`,
+    [claimId, nextVer, claimNo]
   );
+
+  const actionName = isResubmit ? 'CLAIM_RESUBMITTED' : 'CLAIM_SUBMITTED';
 
   await db.query(
     `INSERT INTO audit_logs (claim_id, user_id, action, metadata)
-     VALUES ($1,$2,'CLAIM_SUBMITTED',$3)`,
-    [claimId, facultyId, JSON.stringify({ claim_no: claim.claim_no })]
+     VALUES ($1,$2,$3,$4)`,
+    [claimId, facultyId, actionName, JSON.stringify({ claim_no: claimNo, version: nextVer })]
   );
 
   const srics = await db.query(`SELECT id, email FROM users WHERE role='SRIC' AND is_active=true`);
   for (const sric of srics.rows) {
     await sendNotification(sric.id, claimId,
-      `New claim ${claim.claim_no} submitted by ${claim.faculty_name} — awaiting your verification.`
+      `New claim ${claimNo} submitted by ${claim.faculty_name} — awaiting your verification.`
     );
   }
 
-  return { message: 'Claim submitted successfully', claim_no: claim.claim_no };
+  return { message: 'Claim submitted successfully', claim_no: claimNo };
 };
 
 const getMyClaims = async (facultyId) => {
@@ -242,7 +251,7 @@ const getDecidedByDean = async () => {
   return rows;
 };
 
-const getAllClaims = async (searchQuery = '') => {
+const getAllClaims = async (searchQuery = '', userId, userRole, startDate, endDate) => {
   let query = `
     SELECT c.*, u.name AS faculty_name, u.email AS faculty_email, u.department, u.employee_id,
       (SELECT COUNT(*) FROM claim_items ci WHERE ci.claim_id=c.id) AS item_count
@@ -250,11 +259,68 @@ const getAllClaims = async (searchQuery = '') => {
     JOIN users u ON u.id=c.faculty_id
   `;
   const params = [];
-  if (searchQuery && searchQuery.trim()) {
-    query += ` WHERE c.claim_no ILIKE $1 OR u.name ILIKE $1 OR u.department ILIKE $1 OR c.purpose ILIKE $1 OR c.status ILIKE $1`;
-    params.push(`%${searchQuery.trim()}%`);
+  const whereClauses = [];
+
+  if (userRole === 'DEAN') {
+    whereClauses.push(`(c.status IN ('DEAN_PENDING', 'DEAN_FORWARDED', 'PROCESSED', 'DEAN_REJECTED')
+      OR EXISTS (
+        SELECT 1 FROM audit_logs al 
+        WHERE al.claim_id = c.id AND al.action = 'DEAN_REJECTED'
+      ))`);
   }
+
+  if (userRole === 'SRIC') {
+    whereClauses.push(`c.status <> 'DRAFT'`);
+  }
+
+  if (startDate) {
+    params.push(startDate);
+    whereClauses.push(`c.created_at >= $${params.length}::date`);
+  }
+  if (endDate) {
+    params.push(endDate);
+    whereClauses.push(`c.created_at < ($${params.length}::date + interval '1 day')`);
+  }
+
+  if (searchQuery && searchQuery.trim()) {
+    params.push(`%${searchQuery.trim()}%`);
+    const idx = params.length;
+    whereClauses.push(`(c.claim_no ILIKE $${idx} OR u.name ILIKE $${idx} OR u.employee_id ILIKE $${idx} OR c.purpose ILIKE $${idx} OR c.status ILIKE $${idx})`);
+  }
+
+  if (whereClauses.length > 0) {
+    query += ' WHERE ' + whereClauses.join(' AND ');
+  }
+
   query += ` ORDER BY c.created_at DESC`;
+  const { rows } = await db.query(query, params);
+  return rows;
+};
+
+const getBudgetSummary = async (startDate, endDate) => {
+  let query = `
+    SELECT
+      EXTRACT(YEAR FROM c.submitted_at)::int AS year,
+      COALESCE(ci.budget_head, 'Unclassified') AS budget_head,
+      SUM(ci.total_amount) AS total
+    FROM claim_items ci
+    JOIN claims c ON c.id = ci.claim_id
+    WHERE c.status IN ('DEAN_FORWARDED', 'PROCESSED')
+      AND c.submitted_at IS NOT NULL
+  `;
+  const params = [];
+  if (startDate) {
+    params.push(startDate);
+    query += ` AND c.submitted_at >= $${params.length}::date`;
+  }
+  if (endDate) {
+    params.push(endDate);
+    query += ` AND c.submitted_at < ($${params.length}::date + interval '1 day')`;
+  }
+  query += `
+    GROUP BY EXTRACT(YEAR FROM c.submitted_at)::int, COALESCE(ci.budget_head, 'Unclassified')
+    ORDER BY year DESC, budget_head
+  `;
   const { rows } = await db.query(query, params);
   return rows;
 };
@@ -271,7 +337,7 @@ const getFacultyProfile = async (facultyId) => {
     `SELECT c.*, 
       (SELECT COUNT(*) FROM claim_items ci WHERE ci.claim_id=c.id) AS item_count
      FROM claims c 
-     WHERE c.faculty_id=$1 
+     WHERE c.faculty_id=$1 AND c.status <> 'DRAFT'
      ORDER BY c.created_at DESC`,
     [facultyId]
   );
@@ -310,5 +376,6 @@ const deleteDraft = async (claimId, facultyId) => {
 module.exports = {
   createClaim, addItem, removeItem, clearItems, submitClaim,
   getMyClaims, getClaimById, getPendingForDean, getDecidedByDean, deleteDraft,
-  getPendingForSric, getDecidedBySric, getAllClaims, getFacultyProfile, editDraftClaim
+  getPendingForSric, getDecidedBySric, getAllClaims, getFacultyProfile, editDraftClaim,
+  getBudgetSummary
 };

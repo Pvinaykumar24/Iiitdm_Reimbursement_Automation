@@ -40,7 +40,6 @@ export default function FacultyDashboard() {
   const total     = claims.length;
   const pending   = claims.filter(c => ['SRIC_PENDING','DEAN_PENDING','ACCOUNTS_PENDING'].includes(c.status)).length;
   const approved  = claims.filter(c => ['SRIC_VERIFIED','DEAN_FORWARDED','PROCESSED'].includes(c.status)).length;
-  const reimbursed = claims.filter(c => c.status === 'PROCESSED').reduce((s,c) => s + parseFloat(c.total_amount||0), 0);
 
   return (
     <>
@@ -55,7 +54,6 @@ export default function FacultyDashboard() {
         <div className="stat-card"><div className="stat-label">Total claims</div><div className="stat-value">{total}</div></div>
         <div className="stat-card"><div className="stat-label">Pending</div><div className="stat-value" style={{ color: '#633806' }}>{pending}</div></div>
         <div className="stat-card"><div className="stat-label">Approved</div><div className="stat-value" style={{ color: '#27500A' }}>{approved}</div></div>
-        <div className="stat-card"><div className="stat-label">Total reimbursed</div><div className="stat-value" style={{ color: '#0C447C' }}>₹{reimbursed.toLocaleString('en-IN')}</div></div>
       </div>
 
       <div className="card">
@@ -68,7 +66,7 @@ export default function FacultyDashboard() {
               <tbody>
                 {claims.slice(0,10).map(c => (
                   <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/faculty/claims/${c.id}`)}>
-                    <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no}</td>
+                    <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no || 'Draft'}</td>
                     <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.purpose}</td>
                     <td style={{ color: '#888', fontSize: 12 }}>{c.project_title}</td>
                     <td style={{ fontWeight: 500 }}>₹{parseFloat(c.total_amount).toLocaleString('en-IN')}</td>

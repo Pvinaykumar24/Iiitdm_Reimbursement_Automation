@@ -125,8 +125,11 @@ export default function SricClaimReview() {
             <div key={log.id} style={{ display: 'flex', gap: 10, fontSize: 13 }}>
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#534AB7', marginTop: 5, flexShrink: 0 }} />
               <div>
-                <div style={{ fontWeight: 500 }}>{log.action.replace(/_/g,' ')}</div>
-                <div style={{ color: '#888', fontSize: 12 }}>{log.actor_name} · {new Date(log.created_at).toLocaleString('en-IN')}</div>
+                <div style={{ fontWeight: 500 }}>
+                  {log.action.replace(/_/g,' ')} {log.metadata?.version ? `(v${log.metadata.version})` : ''}
+                </div>
+                {log.metadata?.remarks && <div style={{ color: '#A32D2D', marginTop: 2, fontStyle: 'italic' }}>Remarks: "{log.metadata.remarks}"</div>}
+                <div style={{ color: '#888', fontSize: 12, marginTop: 2 }}>{log.actor_name || 'System'} · {new Date(log.created_at).toLocaleString('en-IN')}</div>
               </div>
             </div>
           ))}
@@ -306,7 +309,7 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                 </tbody>
               </table>
 
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#666' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#1a1a1a', fontWeight: '600' }}>
                 <div>Base Amount: ₹{invBase.toFixed(2)}</div>
                 {(parseFloat(inv.cgst_percent) > 0 || parseFloat(inv.sgst_percent) > 0 || parseFloat(inv.igst_percent) > 0) && (
                   <div>
@@ -318,7 +321,7 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                   </div>
                 )}
                 {parseFloat(inv.other_charges) > 0 && <div>Other Charges: ₹{parseFloat(inv.other_charges).toFixed(2)}</div>}
-                <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 600, marginTop: 4 }}>
+                <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 700, marginTop: 4 }}>
                   Invoice Total: ₹{invTotal.toFixed(2)}
                 </div>
               </div>

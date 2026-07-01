@@ -1,22 +1,42 @@
 import { useEffect, useState, useRef } from 'react';
 import { notificationsApi } from '../../api';
+import { useToastStore } from '../../store/toastStore';
 
 export default function TopbarNotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { addToast } = useToastStore();
+  const toastedIdsRef = useRef(new Set());
+  const isFirstLoadRef = useRef(true);
 
   const fetchNotifs = () => {
     notificationsApi.getAll()
       .then(res => {
-        setNotifications(Array.isArray(res.data) ? res.data : []);
+        const notifs = Array.isArray(res.data) ? res.data : [];
+        setNotifications(notifs);
+
+        // Toast new unread notifications
+        const unreadNotifs = notifs.filter(n => !n.is_read);
+        if (!isFirstLoadRef.current) {
+          unreadNotifs.forEach(n => {
+            if (!toastedIdsRef.current.has(n.id)) {
+              toastedIdsRef.current.add(n.id);
+              addToast(n.message, 'info');
+            }
+          });
+        } else {
+          // On first load, populate toasted set to prevent old alerts flooding the screen
+          unreadNotifs.forEach(n => toastedIdsRef.current.add(n.id));
+          isFirstLoadRef.current = false;
+        }
       })
       .catch(console.error);
   };
 
   useEffect(() => {
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 30000); // Poll every 30s
+    const interval = setInterval(fetchNotifs, 10000); // Poll every 10s for snappier demo responses
     return () => clearInterval(interval);
   }, []);
 

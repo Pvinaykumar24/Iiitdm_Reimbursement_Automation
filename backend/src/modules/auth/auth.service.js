@@ -89,10 +89,16 @@ const completeRegistration = async ({ email, password }) => {
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role, name: user.name },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN }
+    { expiresIn: '15m' }
   );
 
-  return { token, user };
+  const refreshToken = jwt.sign(
+    { id: user.id },
+    process.env.REFRESH_SECRET || (process.env.JWT_SECRET + '_refresh'),
+    { expiresIn: '7d' }
+  );
+
+  return { token, refreshToken, user };
 };
 
 const register = async ({ name, email, password, role, department, employee_id, bank_account, ifsc_code }) => {
@@ -124,13 +130,49 @@ const login = async ({ email, password }) => {
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role, name: user.name },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN }
+    { expiresIn: '15m' }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user.id },
+    process.env.REFRESH_SECRET || (process.env.JWT_SECRET + '_refresh'),
+    { expiresIn: '7d' }
   );
 
   return {
     token,
+    refreshToken,
     user: { id: user.id, name: user.name, email: user.email, role: user.role, department: user.department }
   };
+};
+
+const refreshToken = async ({ refresh_token }) => {
+  if (!refresh_token) throw Object.assign(new Error('Refresh token is required'), { status: 400 });
+  try {
+    const payload = jwt.verify(refresh_token, process.env.REFRESH_SECRET || (process.env.JWT_SECRET + '_refresh'));
+    const { rows } = await db.query(
+      'SELECT id, name, email, role, department FROM users WHERE id=$1 AND is_active=true',
+      [payload.id]
+    );
+    if (!rows.length) throw Object.assign(new Error('User not found or inactive'), { status: 401 });
+    const user = rows[0];
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role, name: user.name },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    const newRefreshToken = jwt.sign(
+      { id: user.id },
+      process.env.REFRESH_SECRET || (process.env.JWT_SECRET + '_refresh'),
+      { expiresIn: '7d' }
+    );
+
+    return { token, refreshToken: newRefreshToken };
+  } catch (err) {
+    throw Object.assign(new Error('Invalid or expired refresh token'), { status: 401 });
+  }
 };
 
 const getMe = async (userId) => {
@@ -166,4 +208,4 @@ const updateProfile = async (userId, { name, phone, designation, bank_account, i
   return rows[0];
 };
 
-module.exports = { register, login, getMe, getProfile, updateProfile, sendRegistrationOtp, verifyRegistrationOtp, completeRegistration };
+module.exports = { register, login, getMe, getProfile, updateProfile, sendRegistrationOtp, verifyRegistrationOtp, completeRegistration, refreshToken };
