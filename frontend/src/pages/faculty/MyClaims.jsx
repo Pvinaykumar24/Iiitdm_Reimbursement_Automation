@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { claimsApi } from '../../api';
 
 const STATUS_MAP = {
-  DRAFT: { label: 'Draft', cls: 'badge-draft' },
-  DEAN_PENDING: { label: 'Dean pending', cls: 'badge-pending' },
-  DEAN_APPROVED: { label: 'Dean approved', cls: 'badge-approved' },
-  DEAN_REJECTED: { label: 'Rejected', cls: 'badge-rejected' },
-  ACCOUNTS_PENDING: { label: 'At Accounts', cls: 'badge-accounts' },
-  PROCESSED: { label: 'Processed', cls: 'badge-processed' },
+  DRAFT:            { label: 'Draft',            cls: 'badge-draft' },
+  SRIC_PENDING:     { label: 'SRIC Pending',     cls: 'badge-pending' },
+  SRIC_VERIFIED:    { label: 'SRIC Verified',    cls: 'badge-approved' },
+  SRIC_REJECTED:    { label: 'SRIC Rejected',    cls: 'badge-rejected' },
+  DEAN_PENDING:     { label: 'Dean Pending',     cls: 'badge-pending' },
+  DEAN_REJECTED:    { label: 'Dean Rejected',    cls: 'badge-rejected' },
+  DEAN_FORWARDED:   { label: 'Dean Approved',    cls: 'badge-approved' },
+  ACCOUNTS_PENDING: { label: 'Accounts',         cls: 'badge-accounts' },
+  PROCESSED:        { label: 'Processed',        cls: 'badge-processed' },
 };
 
 export default function MyClaims() {

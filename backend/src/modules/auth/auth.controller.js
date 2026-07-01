@@ -8,8 +8,16 @@ const login      = async (req, res, next) => {
   try { res.json(await service.login(req.body)); }
   catch (err) { next(err); }
 };
-const getMe      = async (req, res, next) => {
+const getMe = async (req, res, next) => {
   try { res.json(await service.getMe(req.user.id)); }
+  catch (err) { next(err); }
+};
+const getProfile = async (req, res, next) => {
+  try { res.json(await service.getProfile(req.user.id)); }
+  catch (err) { next(err); }
+};
+const updateProfile = async (req, res, next) => {
+  try { res.json(await service.updateProfile(req.user.id, req.body)); }
   catch (err) { next(err); }
 };
 const sendOtp    = async (req, res, next) => {
@@ -25,4 +33,4 @@ const completeReg = async (req, res, next) => {
   catch (err) { next(err); }
 };
 
-module.exports = { register, login, getMe, sendOtp, verifyOtp, completeReg };
+module.exports = { register, login, getMe, getProfile, updateProfile, sendOtp, verifyOtp, completeReg };

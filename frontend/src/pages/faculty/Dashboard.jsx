@@ -3,10 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import { claimsApi } from '../../api';
 
 const statusBadge = (status) => {
-  const map = { DRAFT:'badge-draft', DEAN_PENDING:'badge-pending', DEAN_APPROVED:'badge-approved',
-    DEAN_REJECTED:'badge-rejected', ACCOUNTS_PENDING:'badge-accounts', PROCESSED:'badge-processed' };
-  const label = { DRAFT:'Draft', DEAN_PENDING:'Dean pending', DEAN_APPROVED:'Dean approved',
-    DEAN_REJECTED:'Rejected', ACCOUNTS_PENDING:'Accounts', PROCESSED:'Processed' };
+  const map = {
+    DRAFT: 'badge-draft',
+    SRIC_PENDING: 'badge-pending',
+    SRIC_VERIFIED: 'badge-approved',
+    SRIC_REJECTED: 'badge-rejected',
+    DEAN_PENDING: 'badge-pending',
+    DEAN_REJECTED: 'badge-rejected',
+    DEAN_FORWARDED: 'badge-approved',
+    ACCOUNTS_PENDING: 'badge-accounts',
+    PROCESSED: 'badge-processed'
+  };
+  const label = {
+    DRAFT: 'Draft',
+    SRIC_PENDING: 'SRIC Pending',
+    SRIC_VERIFIED: 'SRIC Verified',
+    SRIC_REJECTED: 'SRIC Rejected',
+    DEAN_PENDING: 'Dean Pending',
+    DEAN_REJECTED: 'Dean Rejected',
+    DEAN_FORWARDED: 'Dean Approved',
+    ACCOUNTS_PENDING: 'Accounts',
+    PROCESSED: 'Processed'
+  };
   return <span className={`badge ${map[status]||'badge-draft'}`}>{label[status]||status}</span>;
 };
 
@@ -20,8 +38,8 @@ export default function FacultyDashboard() {
   }, []);
 
   const total     = claims.length;
-  const pending   = claims.filter(c => c.status === 'DEAN_PENDING').length;
-  const approved  = claims.filter(c => ['DEAN_APPROVED','ACCOUNTS_PENDING','PROCESSED'].includes(c.status)).length;
+  const pending   = claims.filter(c => ['SRIC_PENDING','DEAN_PENDING','ACCOUNTS_PENDING'].includes(c.status)).length;
+  const approved  = claims.filter(c => ['SRIC_VERIFIED','DEAN_FORWARDED','PROCESSED'].includes(c.status)).length;
   const reimbursed = claims.filter(c => c.status === 'PROCESSED').reduce((s,c) => s + parseFloat(c.total_amount||0), 0);
 
   return (

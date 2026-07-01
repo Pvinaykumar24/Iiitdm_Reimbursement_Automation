@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import TopbarNotificationBell from './TopbarNotificationBell';
 
 export default function DeanLayout() {
   const { user, logout } = useAuthStore();
@@ -21,8 +22,9 @@ export default function DeanLayout() {
         </div>
       </aside>
       <div className="layout-body">
-        <header className="topbar">
+        <header className="topbar" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span style={{ flex: 1, fontWeight: 500 }}>IIITDM Reimbursement Portal</span>
+          <TopbarNotificationBell />
           <span style={{ fontSize: 12, color: '#888' }}>Dean SR Office</span>
         </header>
         <main className="main-content">

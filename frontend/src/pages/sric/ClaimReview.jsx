@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { claimsApi, approvalsApi } from '../../api';
 
-export default function DeanClaimReview() {
+export default function SricClaimReview() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [claim, setClaim] = useState(null);
@@ -10,9 +10,17 @@ export default function DeanClaimReview() {
   const [remarks, setRemarks] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [itemBudgetHeads, setItemBudgetHeads] = useState({});
 
   useEffect(() => {
-    claimsApi.getById(id).then(r => setClaim(r.data)).catch(console.error).finally(() => setLoading(false));
+    claimsApi.getById(id).then(r => {
+      setClaim(r.data);
+      const initialHeads = {};
+      r.data.items?.forEach(it => {
+        initialHeads[it.id] = it.budget_head || 'Consumable';
+      });
+      setItemBudgetHeads(initialHeads);
+    }).catch(console.error).finally(() => setLoading(false));
   }, [id]);
 
   const decide = async (action) => {
@@ -22,8 +30,8 @@ export default function DeanClaimReview() {
     }
     setError(''); setSubmitting(true);
     try {
-      await approvalsApi.deanDecide(id, action, remarks);
-      navigate('/dean/pending');
+      await approvalsApi.sricDecide(id, action, remarks, action === 'APPROVED' ? itemBudgetHeads : undefined);
+      navigate('/sric/pending');
     } catch (err) {
       setError(err.response?.data?.message || 'Action failed');
     } finally { setSubmitting(false); }
@@ -32,7 +40,7 @@ export default function DeanClaimReview() {
   if (loading) return <div style={{ padding: 32, textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>;
   if (!claim) return <div className="alert alert-error">Claim not found.</div>;
 
-  const isPending = claim.status === 'DEAN_PENDING';
+  const isPending = claim.status === 'SRIC_PENDING';
 
   const STATUS_BADGE = {
     DRAFT:            { cls: 'badge-draft',    label: 'Draft' },
@@ -42,18 +50,17 @@ export default function DeanClaimReview() {
     DEAN_PENDING:     { cls: 'badge-pending',  label: 'Pending Dean review' },
     DEAN_REJECTED:    { cls: 'badge-rejected', label: 'Rejected by Dean' },
     DEAN_FORWARDED:   { cls: 'badge-approved', label: 'Approved by Dean' },
-    ACCOUNTS_PENDING: { cls: 'badge-accounts', label: 'Forwarded to Accounts' },
+    ACCOUNTS_PENDING: { cls: 'badge-accounts',  label: 'Forwarded to Accounts' },
     PROCESSED:        { cls: 'badge-processed', label: 'Processed' },
   };
   const badge = STATUS_BADGE[claim.status] || { cls: 'badge-draft', label: claim.status };
   const sricApproval = claim.approvals?.find(a => a.stage === 'SRIC_REVIEW');
-  const deanApproval = claim.approvals?.find(a => a.stage === 'DEAN_REVIEW');
 
   // Compute budget segregation summaries dynamically
   const budgetHeadSummaries = {};
   if (claim && claim.items) {
     claim.items.forEach(it => {
-      const bh = it.budget_head || 'Consumable';
+      const bh = itemBudgetHeads[it.id] || it.budget_head || 'Consumable';
       budgetHeadSummaries[bh] = (budgetHeadSummaries[bh] || 0) + parseFloat(it.total_amount || 0);
     });
   }
@@ -75,7 +82,7 @@ export default function DeanClaimReview() {
             <div>
               <div style={{ fontSize: 11, color: '#888' }}>Faculty (PI)</div>
               <div style={{ fontWeight: 500, marginTop: 2 }}>
-                <span style={{ color: '#534AB7', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate(`/dean/faculty/${claim.faculty_id}`)}>
+                <span style={{ color: '#534AB7', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate(`/sric/faculty/${claim.faculty_id}`)}>
                   {claim.faculty_name}
                 </span>
               </div>
@@ -91,44 +98,22 @@ export default function DeanClaimReview() {
       <BillItemsTable
         items={claim.items}
         totalAmount={claim.total_amount}
-        isPending={false}
+        itemBudgetHeads={itemBudgetHeads}
+        setItemBudgetHeads={setItemBudgetHeads}
+        isPending={isPending}
       />
 
       {/* Segregation Summary */}
       {claim.items && claim.items.length > 0 && (
         <div className="card" style={{ marginBottom: 16 }}>
-          <div className="card-header">Budget Segregation (Classified by SRIC)</div>
+          <div className="card-header">Budget Segregation Summary</div>
           <div className="card-body" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             {Object.entries(budgetHeadSummaries).map(([bh, amt]) => (
               <div key={bh} style={{ background: '#f5f5f4', padding: '10px 14px', borderRadius: 8, minWidth: 160, border: '1px solid #e5e5e3' }}>
                 <div style={{ fontSize: 11, color: '#666', fontWeight: 500 }}>{bh}</div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: '#534AB7', marginTop: 2 }}>₹{amt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: '#27500A', marginTop: 2 }}>₹{amt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* SRIC verification notes */}
-      {sricApproval && (
-        <div className="card" style={{ marginBottom: 16, border: '1px solid #EAF3DE' }}>
-          <div className="card-header" style={{ background: '#F4F9EE', color: '#27500A' }}>SRIC Cell Verification Info</div>
-          <div className="card-body">
-            <div style={{ display: 'flex', gap: 24, fontSize: 13 }}>
-              <div>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Verified By</div>
-                <div style={{ fontWeight: 500 }}>{sricApproval.actor_name}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Date</div>
-                <div>{new Date(sricApproval.acted_at).toLocaleString('en-IN')}</div>
-              </div>
-            </div>
-            {sricApproval.remarks && (
-              <div style={{ marginTop: 12, padding: '10px 12px', background: '#fcfcfc', borderLeft: '3px solid #3B6D11', fontSize: 13, fontStyle: 'italic' }}>
-                "{sricApproval.remarks}"
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -150,52 +135,52 @@ export default function DeanClaimReview() {
 
       {isPending ? (
         <div className="card">
-          <div className="card-header">Dean Final Approval Decision</div>
+          <div className="card-header">SRIC Cell Verification</div>
           <div className="card-body">
             <div className="form-group">
               <label className="form-label">Remarks <span style={{ color: '#A32D2D' }}>(required if rejecting)</span></label>
               <textarea rows={3} value={remarks} onChange={e => setRemarks(e.target.value)}
-                placeholder="Add final review remarks..." />
+                placeholder="Add remarks for verification or reason for rejection..." />
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
               <button className="btn btn-danger" onClick={() => decide('REJECTED')} disabled={submitting}>
                 <i className="ti ti-x" style={{ marginRight: 6 }} />{submitting ? 'Processing...' : 'Reject & Return'}
               </button>
               <button className="btn btn-success" onClick={() => decide('APPROVED')} disabled={submitting}>
-                <i className="ti ti-check" style={{ marginRight: 6 }} />{submitting ? 'Processing...' : 'Recommend & Forward for Processing'}
+                <i className="ti ti-check" style={{ marginRight: 6 }} />{submitting ? 'Processing...' : 'Verify & Forward to Dean'}
               </button>
             </div>
           </div>
         </div>
       ) : (
         <div className="card">
-          <div className="card-header">Dean Approval Info</div>
+          <div className="card-header">SRIC Verification Info</div>
           <div className="card-body">
             <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 13 }}>
               <div>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Decision</div>
-                <span className={`badge ${claim.status === 'DEAN_REJECTED' ? 'badge-rejected' : 'badge-approved'}`}>
-                  <i className={`ti ${claim.status === 'DEAN_REJECTED' ? 'ti-circle-x' : 'ti-circle-check'}`} style={{ marginRight: 4, fontSize: 11 }} />
-                  {claim.status === 'DEAN_REJECTED' ? 'Rejected' : 'Approved & Forwarded'}
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Status</div>
+                <span className={`badge ${claim.status === 'SRIC_REJECTED' ? 'badge-rejected' : 'badge-approved'}`}>
+                  <i className={`ti ${claim.status === 'SRIC_REJECTED' ? 'ti-circle-x' : 'ti-circle-check'}`} style={{ marginRight: 4, fontSize: 11 }} />
+                  {claim.status === 'SRIC_REJECTED' ? 'Rejected' : 'Verified'}
                 </span>
               </div>
-              {deanApproval && (
+              {sricApproval && (
                 <>
                   <div>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Decided by</div>
-                    <div style={{ fontWeight: 500 }}>{deanApproval.actor_name}</div>
+                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Processed by</div>
+                    <div style={{ fontWeight: 500 }}>{sricApproval.actor_name}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Date</div>
-                    <div>{new Date(deanApproval.acted_at).toLocaleString('en-IN')}</div>
+                    <div>{new Date(sricApproval.acted_at).toLocaleString('en-IN')}</div>
                   </div>
                 </>
               )}
             </div>
-            {deanApproval?.remarks && (
+            {sricApproval?.remarks && (
               <div style={{ marginTop: 14, padding: '10px 14px', background: '#fafaf9', borderRadius: 7, border: '1px solid #e5e5e3', fontSize: 13 }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Remarks</div>
-                {deanApproval.remarks}
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Verification Remarks</div>
+                {sricApproval.remarks}
               </div>
             )}
           </div>
@@ -204,6 +189,8 @@ export default function DeanClaimReview() {
     </>
   );
 }
+
+const DEAN_BUDGET_HEADS = ['Consumable', 'Contingency', 'Travel', 'Equipment', 'Others', 'Accountable Consumable'];
 
 const groupItemsByInvoice = (items = []) => {
   const groups = {};
@@ -239,7 +226,7 @@ const groupItemsByInvoice = (items = []) => {
   return Object.values(groups);
 };
 
-function BillItemsTable({ items = [], totalAmount }) {
+function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudgetHeads, isPending }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const invoices = groupItemsByInvoice(items);
 
@@ -277,7 +264,7 @@ function BillItemsTable({ items = [], totalAmount }) {
                   <tr>
                     <th style={{ width: 40 }}>#</th>
                     <th>Description</th>
-                    <th style={{ width: 180 }}>Budget Head</th>
+                    <th style={{ width: 220 }}>Budget Head</th>
                     <th style={{ width: 100, textAlign: 'right' }}>Qty</th>
                     <th style={{ width: 120, textAlign: 'right' }}>Unit Price</th>
                     <th style={{ width: 120, textAlign: 'right' }}>Total</th>
@@ -292,11 +279,23 @@ function BillItemsTable({ items = [], totalAmount }) {
                     >
                       <td>{pIdx + 1}</td>
                       <td>{p.description}</td>
-                      <td>
-                        {p.budget_head ? (
-                          <span className="badge badge-approved" style={{ fontSize: 11 }}>{p.budget_head}</span>
+                      <td onClick={e => e.stopPropagation()}>
+                        {isPending ? (
+                          <select
+                            value={itemBudgetHeads[p.id] || 'Consumable'}
+                            onChange={e => setItemBudgetHeads({ ...itemBudgetHeads, [p.id]: e.target.value })}
+                            style={{ width: '100%', padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #d4d4d0' }}
+                          >
+                            {DEAN_BUDGET_HEADS.map(bh => (
+                              <option key={bh} value={bh}>{bh}</option>
+                            ))}
+                          </select>
                         ) : (
-                          <span style={{ color: '#888', fontStyle: 'italic', fontSize: 12 }}>—</span>
+                          p.budget_head ? (
+                            <span className="badge badge-approved" style={{ fontSize: 11 }}>{p.budget_head}</span>
+                          ) : (
+                            <span style={{ color: '#888', fontStyle: 'italic', fontSize: 12 }}>—</span>
+                          )
                         )}
                       </td>
                       <td style={{ textAlign: 'right' }}>{p.quantity} {p.quantity_unit || 'pcs'}</td>

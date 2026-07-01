@@ -16,7 +16,7 @@ const STATUS_CONFIG = {
 
 const FILTERS = ['ALL', 'PENDING', 'APPROVED', 'REJECTED'];
 
-export default function DeanAllClaims() {
+export default function SricAllClaims() {
   const [claims, setClaims] = useState([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('ALL');
@@ -37,6 +37,7 @@ export default function DeanAllClaims() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Simple debounce helper
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchClaims(search);
@@ -74,7 +75,7 @@ export default function DeanAllClaims() {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h1 className="page-title" style={{ margin: 0 }}>All Claims</h1>
+        <h1 className="page-title" style={{ margin: 0 }}>All Claims Database</h1>
         <div style={{ position: 'relative', width: 320 }}>
           <i className="ti ti-search" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#888' }} />
           <input
@@ -171,10 +172,10 @@ export default function DeanAllClaims() {
               {filteredClaims.map(c => {
                 const cfg = STATUS_CONFIG[c.status] || { label: c.status, badgeClass: 'badge-draft', icon: 'ti-file' };
                 return (
-                  <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/dean/claims/${c.id}`)}>
+                  <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/sric/claims/${c.id}`)}>
                     <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no}</td>
                     <td>
-                      <span style={{ color: '#534AB7', cursor: 'pointer', fontWeight: 500 }} onClick={e => { e.stopPropagation(); navigate(`/dean/faculty/${c.faculty_id}`); }}>
+                      <span style={{ color: '#534AB7', cursor: 'pointer', fontWeight: 500 }} onClick={e => { e.stopPropagation(); navigate(`/sric/faculty/${c.faculty_id}`); }}>
                         {c.faculty_name}
                       </span>
                     </td>
@@ -196,9 +197,9 @@ export default function DeanAllClaims() {
                     <td>
                       <button
                         className="btn btn-ghost btn-sm"
-                        onClick={e => { e.stopPropagation(); navigate(`/dean/claims/${c.id}`); }}
+                        onClick={e => { e.stopPropagation(); navigate(`/sric/claims/${c.id}`); }}
                       >
-                        View
+                        Verify
                       </button>
                     </td>
                   </tr>

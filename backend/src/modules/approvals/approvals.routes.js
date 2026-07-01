@@ -4,5 +4,6 @@ const ctrl = require('./approvals.controller');
 
 router.use(verifyToken);
 router.post('/dean/:id', requireRole('DEAN'), ctrl.deanDecision);
+router.post('/sric/:id', requireRole('SRIC'), ctrl.sricDecision);
 
 module.exports = router;
