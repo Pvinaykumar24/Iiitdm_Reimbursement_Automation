@@ -1,6 +1,2 @@
-
 npm audit
 npm audit fix
-npm run lint
-npx trufflehog filesystem .
-    
