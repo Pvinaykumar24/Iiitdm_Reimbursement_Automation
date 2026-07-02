@@ -6,7 +6,7 @@ const STATUS_CONFIG = {
   DRAFT:            { label: 'Draft',            badgeClass: 'badge-draft',     icon: 'ti-file' },
   SRIC_PENDING:     { label: 'Pending SRIC',     badgeClass: 'badge-pending',   icon: 'ti-clock' },
   SRIC_REJECTED:    { label: 'Rejected by SRIC', badgeClass: 'badge-rejected',  icon: 'ti-circle-x' },
-  SRIC_VERIFIED:    { label: 'Verified by SRIC', badgeClass: 'badge-approved',  icon: 'ti-circle-check' },
+  SRIC_VERIFIED:    { label: 'SRIC Recommended & Forwarded to Dean', badgeClass: 'badge-approved',  icon: 'ti-circle-check' },
   DEAN_PENDING:     { label: 'Pending Dean',     badgeClass: 'badge-pending',   icon: 'ti-clock' },
   DEAN_REJECTED:    { label: 'Rejected by Dean', badgeClass: 'badge-rejected',  icon: 'ti-circle-x' },
   DEAN_FORWARDED:   { label: 'Approved by Dean', badgeClass: 'badge-approved',  icon: 'ti-circle-check' },

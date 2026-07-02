@@ -45,7 +45,7 @@ export default function SricClaimReview() {
   const STATUS_BADGE = {
     DRAFT:            { cls: 'badge-draft',    label: 'Draft' },
     SRIC_PENDING:     { cls: 'badge-pending',  label: 'Pending SRIC verification' },
-    SRIC_VERIFIED:    { cls: 'badge-approved', label: 'Verified by SRIC' },
+    SRIC_VERIFIED:    { cls: 'badge-approved', label: 'SRIC Recommended & Forwarded to Dean' },
     SRIC_REJECTED:    { cls: 'badge-rejected', label: 'Rejected by SRIC' },
     DEAN_PENDING:     { cls: 'badge-pending',  label: 'Pending Dean review' },
     DEAN_REJECTED:    { cls: 'badge-rejected', label: 'Rejected by Dean' },

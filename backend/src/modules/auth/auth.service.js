@@ -101,21 +101,7 @@ const completeRegistration = async ({ email, password }) => {
   return { token, refreshToken, user };
 };
 
-const register = async ({ name, email, password, role, department, employee_id, bank_account, ifsc_code }) => {
-  const exists = await db.query('SELECT id FROM users WHERE email=$1', [email]);
-  if (exists.rows.length) throw Object.assign(new Error('Email already registered'), { status: 409 });
 
-  const validRoles = ['FACULTY', 'SRIC', 'DEAN', 'ACCOUNTS', 'ADMIN'];
-  if (!validRoles.includes(role)) throw Object.assign(new Error('Invalid role'), { status: 400 });
-
-  const hash = await bcrypt.hash(password, 10);
-  const { rows } = await db.query(
-    `INSERT INTO users (name, email, password, role, department, employee_id, bank_account, ifsc_code)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id, name, email, role, department`,
-    [name, email, hash, role, department || null, employee_id || null, bank_account || null, ifsc_code || null]
-  );
-  return rows[0];
-};
 
 const login = async ({ email, password }) => {
   const { rows } = await db.query(
@@ -177,7 +163,7 @@ const refreshToken = async ({ refresh_token }) => {
 
 const getMe = async (userId) => {
   const { rows } = await db.query(
-    'SELECT id, name, email, role, department, employee_id, phone, designation, bank_account, ifsc_code FROM users WHERE id=$1', [userId]
+    'SELECT id, name, email, role, department, employee_id, phone, designation FROM users WHERE id=$1', [userId]
   );
   if (!rows.length) throw Object.assign(new Error('User not found'), { status: 404 });
   return rows[0];
@@ -185,27 +171,25 @@ const getMe = async (userId) => {
 
 const getProfile = async (userId) => {
   const { rows } = await db.query(
-    'SELECT id, name, email, role, department, employee_id, bank_account, ifsc_code, phone, designation FROM users WHERE id=$1',
+    'SELECT id, name, email, role, department, employee_id, phone, designation FROM users WHERE id=$1',
     [userId]
   );
   if (!rows.length) throw Object.assign(new Error('User not found'), { status: 404 });
   return rows[0];
 };
 
-const updateProfile = async (userId, { name, phone, designation, bank_account, ifsc_code }) => {
+const updateProfile = async (userId, { name, phone, designation }) => {
   const { rows } = await db.query(
     `UPDATE users
      SET name=COALESCE($2, name),
          phone=COALESCE($3, phone),
-         designation=COALESCE($4, designation),
-         bank_account=COALESCE($5, bank_account),
-         ifsc_code=COALESCE($6, ifsc_code)
+         designation=COALESCE($4, designation)
      WHERE id=$1
-     RETURNING id, name, email, role, department, employee_id, bank_account, ifsc_code, phone, designation`,
-    [userId, name, phone || null, designation || null, bank_account || null, ifsc_code || null]
+     RETURNING id, name, email, role, department, employee_id, phone, designation`,
+    [userId, name, phone || null, designation || null]
   );
   if (!rows.length) throw Object.assign(new Error('User not found'), { status: 404 });
   return rows[0];
 };
 
-module.exports = { register, login, getMe, getProfile, updateProfile, sendRegistrationOtp, verifyRegistrationOtp, completeRegistration, refreshToken };
+module.exports = { login, getMe, getProfile, updateProfile, sendRegistrationOtp, verifyRegistrationOtp, completeRegistration, refreshToken };

@@ -8,9 +8,7 @@ export default function FacultyProfile() {
     employee_id: '',
     department: '',
     designation: '',
-    phone: '',
-    bank_account: '',
-    ifsc_code: ''
+    phone: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -27,9 +25,7 @@ export default function FacultyProfile() {
           employee_id: d.employee_id || '',
           department: d.department || '',
           designation: d.designation || '',
-          phone: d.phone || '',
-          bank_account: d.bank_account || '',
-          ifsc_code: d.ifsc_code || ''
+          phone: d.phone || ''
         });
       })
       .catch(err => {
@@ -46,9 +42,7 @@ export default function FacultyProfile() {
       const res = await authApi.updateProfile({
         name: form.name,
         phone: form.phone,
-        designation: form.designation,
-        bank_account: form.bank_account,
-        ifsc_code: form.ifsc_code
+        designation: form.designation
       });
       setMessage('Profile updated successfully!');
       const d = res.data;
@@ -56,9 +50,7 @@ export default function FacultyProfile() {
         ...prev,
         name: d.name || '',
         phone: d.phone || '',
-        designation: d.designation || '',
-        bank_account: d.bank_account || '',
-        ifsc_code: d.ifsc_code || ''
+        designation: d.designation || ''
       }));
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save profile');
@@ -110,26 +102,7 @@ export default function FacultyProfile() {
                 </div>
               </div>
 
-              <div className="form-row form-row-2" style={{ marginTop: 8 }}>
-                <div className="form-group">
-                  <label className="form-label">Bank Account Number</label>
-                  <input
-                    type="text"
-                    value={form.bank_account}
-                    onChange={e => setForm({ ...form, bank_account: e.target.value })}
-                    placeholder="Enter savings or current account no."
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Bank IFSC Code</label>
-                  <input
-                    type="text"
-                    value={form.ifsc_code}
-                    onChange={e => setForm({ ...form, ifsc_code: e.target.value.toUpperCase() })}
-                    placeholder="e.g. SBIN0001234"
-                  />
-                </div>
-              </div>
+
 
               <button type="submit" className="btn btn-primary" style={{ marginTop: 12 }} disabled={saving}>
                 {saving ? 'Saving...' : 'Save Profile Details'}

@@ -59,7 +59,7 @@ const sricDecision = async (claimId, sricUserId, action, remarks, itemBudgetHead
     );
 
     const notifMsg = action === 'APPROVED'
-      ? `Your claim ${claim.claim_no} has been verified by SRIC and forwarded to Dean.`
+      ? `Your claim ${claim.claim_no} has been recommended by SRIC and forwarded to Dean.`
       : `Your claim ${claim.claim_no} was rejected by SRIC. Reason: ${remarks}`;
 
     await client.query(
@@ -72,7 +72,7 @@ const sricDecision = async (claimId, sricUserId, action, remarks, itemBudgetHead
       for (const d of deans.rows) {
         await client.query(
           'INSERT INTO notifications (user_id, claim_id, message) VALUES ($1,$2,$3)',
-          [d.id, claimId, `Claim ${claim.claim_no} verified by SRIC — pending your review.`]
+          [d.id, claimId, `Claim ${claim.claim_no} recommended by SRIC and forwarded — pending your review.`]
         );
       }
     }
@@ -88,7 +88,7 @@ const sricDecision = async (claimId, sricUserId, action, remarks, itemBudgetHead
   const emailHtml = action === 'APPROVED'
     ? `<p>Dear ${claim.fac_name},</p>
        <p>Your claim <strong>${claim.claim_no}</strong> (₹${claim.total_amount}) has been
-       <strong style="color:green">verified</strong> by SRIC and forwarded to Dean SR for final approval.</p>
+       <strong style="color:green">recommended</strong> by SRIC and forwarded to Dean SR for final approval.</p>
        <a href="${process.env.CLIENT_URL}/faculty/claims/${claimId}" 
           style="background:#534AB7;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;display:inline-block">
          View claim →
@@ -105,7 +105,7 @@ const sricDecision = async (claimId, sricUserId, action, remarks, itemBudgetHead
 
   await sendEmail({
     to: claim.fac_email,
-    subject: `Claim ${claim.claim_no} — ${action === 'APPROVED' ? 'Verified by SRIC' : 'Returned by SRIC'}`,
+    subject: `Claim ${claim.claim_no} — ${action === 'APPROVED' ? 'SRIC Recommended & Forwarded to Dean' : 'Returned by SRIC'}`,  
     html: emailHtml,
   });
 

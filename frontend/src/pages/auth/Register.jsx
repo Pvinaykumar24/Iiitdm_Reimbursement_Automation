@@ -154,10 +154,11 @@ export default function Register() {
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'center',
       background: 'linear-gradient(135deg, #f0f0ff 0%, #f5f5f4 60%, #e8f5e9 100%)',
       padding: '24px 16px',
+      overflowY: 'auto',
     }}>
       <div style={{ width: '100%', maxWidth: 440 }}>
 

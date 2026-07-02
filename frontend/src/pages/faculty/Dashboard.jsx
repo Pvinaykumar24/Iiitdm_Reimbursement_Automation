@@ -17,7 +17,7 @@ const statusBadge = (status) => {
   const label = {
     DRAFT: 'Draft',
     SRIC_PENDING: 'SRIC Pending',
-    SRIC_VERIFIED: 'SRIC Verified',
+    SRIC_VERIFIED: 'SRIC Recommended & Forwarded to Dean',
     SRIC_REJECTED: 'SRIC Rejected',
     DEAN_PENDING: 'Dean Pending',
     DEAN_REJECTED: 'Dean Rejected',

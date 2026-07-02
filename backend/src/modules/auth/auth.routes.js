@@ -26,7 +26,7 @@ const completeRegSchema = {
 };
 
 router.post('/login',                  rateLimit(15 * 60 * 1000, 5, 'Too many login attempts. Please try again after 15 minutes.'), validate(loginSchema), ctrl.login);
-router.post('/register',               ctrl.register);
+
 router.post('/refresh',                ctrl.refreshToken);
 router.get('/me',                      verifyToken, ctrl.getMe);
 router.get('/profile',                 verifyToken, ctrl.getProfile);

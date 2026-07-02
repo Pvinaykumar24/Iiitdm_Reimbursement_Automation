@@ -5,7 +5,7 @@ import { claimsApi } from '../../api';
 const STATUS_MAP = {
   DRAFT:            { label: 'Draft',            cls: 'badge-draft' },
   SRIC_PENDING:     { label: 'SRIC Pending',     cls: 'badge-pending' },
-  SRIC_VERIFIED:    { label: 'SRIC Verified',    cls: 'badge-approved' },
+  SRIC_VERIFIED:    { label: 'SRIC Recommended & Forwarded to Dean',    cls: 'badge-approved' },
   SRIC_REJECTED:    { label: 'SRIC Rejected',    cls: 'badge-rejected' },
   DEAN_PENDING:     { label: 'Dean Pending',     cls: 'badge-pending' },
   DEAN_REJECTED:    { label: 'Dean Rejected',    cls: 'badge-rejected' },
