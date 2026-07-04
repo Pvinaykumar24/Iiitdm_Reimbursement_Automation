@@ -25,7 +25,7 @@ const statusBadge = (status) => {
     ACCOUNTS_PENDING: 'Accounts',
     PROCESSED: 'Processed'
   };
-  return <span className={`badge ${map[status]||'badge-draft'}`}>{label[status]||status}</span>;
+  return <span className={`badge ${map[status] || 'badge-draft'}`}>{label[status] || status}</span>;
 };
 
 export default function FacultyDashboard() {
@@ -37,9 +37,9 @@ export default function FacultyDashboard() {
     claimsApi.getMy().then(r => setClaims(r.data)).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  const total     = claims.length;
-  const pending   = claims.filter(c => ['SRIC_PENDING','DEAN_PENDING','ACCOUNTS_PENDING'].includes(c.status)).length;
-  const approved  = claims.filter(c => ['SRIC_VERIFIED','DEAN_FORWARDED','PROCESSED'].includes(c.status)).length;
+  const total = claims.length;
+  const pending = claims.filter(c => ['SRIC_PENDING', 'DEAN_PENDING', 'ACCOUNTS_PENDING'].includes(c.status)).length;
+  const approved = claims.filter(c => ['SRIC_VERIFIED', 'DEAN_FORWARDED', 'PROCESSED'].includes(c.status)).length;
 
   return (
     <>
@@ -59,16 +59,15 @@ export default function FacultyDashboard() {
       <div className="card">
         <div className="card-header">Recent claims</div>
         {loading ? <div style={{ padding: 24, textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
-        : claims.length === 0
-          ? <div className="empty-state"><i className="ti ti-file-off" />No claims yet. <span style={{ color: '#534AB7', cursor: 'pointer' }} onClick={() => navigate('/faculty/claims/new')}>Create your first claim →</span></div>
-          : <table className="table">
-              <thead><tr><th>Claim no.</th><th>Purpose</th><th>Project</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+          : claims.length === 0
+            ? <div className="empty-state"><i className="ti ti-file-off" />No claims yet. <span style={{ color: '#534AB7', cursor: 'pointer' }} onClick={() => navigate('/faculty/claims/new')}>Create your first claim →</span></div>
+            : <table className="table">
+              <thead><tr><th>Claim no.</th><th>Project Name</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
               <tbody>
-                {claims.slice(0,10).map(c => (
+                {claims.slice(0, 10).map(c => (
                   <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/faculty/claims/${c.id}`)}>
                     <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no || 'Draft'}</td>
-                    <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.purpose}</td>
-                    <td style={{ color: '#888', fontSize: 12 }}>{c.project_title}</td>
+                    <td style={{ color: '#888', fontSize: 12 }}>{c.project_no || '—'}</td>
                     <td style={{ fontWeight: 500 }}>₹{parseFloat(c.total_amount).toLocaleString('en-IN')}</td>
                     <td>{statusBadge(c.status)}</td>
                     <td style={{ color: '#888', fontSize: 12 }}>{new Date(c.created_at).toLocaleDateString('en-IN')}</td>

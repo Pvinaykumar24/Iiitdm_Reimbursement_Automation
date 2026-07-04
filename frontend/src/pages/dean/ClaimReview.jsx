@@ -35,15 +35,15 @@ export default function DeanClaimReview() {
   const isPending = claim.status === 'DEAN_PENDING';
 
   const STATUS_BADGE = {
-    DRAFT:            { cls: 'badge-draft',    label: 'Draft' },
-    SRIC_PENDING:     { cls: 'badge-pending',  label: 'Pending SRIC verification' },
-    SRIC_VERIFIED:    { cls: 'badge-approved', label: 'SRIC Recommended & Forwarded to Dean' },
-    SRIC_REJECTED:    { cls: 'badge-rejected', label: 'Rejected by SRIC' },
-    DEAN_PENDING:     { cls: 'badge-pending',  label: 'Pending Dean review' },
-    DEAN_REJECTED:    { cls: 'badge-rejected', label: 'Rejected by Dean' },
-    DEAN_FORWARDED:   { cls: 'badge-approved', label: 'Approved by Dean' },
+    DRAFT: { cls: 'badge-draft', label: 'Draft' },
+    SRIC_PENDING: { cls: 'badge-pending', label: 'Pending SRIC verification' },
+    SRIC_VERIFIED: { cls: 'badge-approved', label: 'SRIC Recommended & Forwarded to Dean' },
+    SRIC_REJECTED: { cls: 'badge-rejected', label: 'Rejected by SRIC' },
+    DEAN_PENDING: { cls: 'badge-pending', label: 'Pending Dean review' },
+    DEAN_REJECTED: { cls: 'badge-rejected', label: 'Rejected by Dean' },
+    DEAN_FORWARDED: { cls: 'badge-approved', label: 'Approved by Dean' },
     ACCOUNTS_PENDING: { cls: 'badge-accounts', label: 'Forwarded to Accounts' },
-    PROCESSED:        { cls: 'badge-processed', label: 'Processed' },
+    PROCESSED: { cls: 'badge-processed', label: 'Processed' },
   };
   const badge = STATUS_BADGE[claim.status] || { cls: 'badge-draft', label: claim.status };
   const sricApproval = claim.approvals?.find(a => a.stage === 'SRIC_REVIEW');
@@ -64,6 +64,15 @@ export default function DeanClaimReview() {
         <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}><i className="ti ti-arrow-left" /></button>
         <h1 className="page-title" style={{ margin: 0 }}>Review — {claim.claim_no}</h1>
         <span className={`badge ${badge.cls}`} style={{ marginLeft: 4 }}>{badge.label}</span>
+        {claim.status !== 'DRAFT' && (
+          <button 
+            className="btn btn-ghost btn-sm" 
+            onClick={() => window.open(`/claims/${claim.id}/print`, '_blank')} 
+            style={{ marginLeft: 'auto', background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}
+          >
+            <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download
+          </button>
+        )}
       </div>
 
       {error && <div className="alert alert-error"><i className="ti ti-alert-circle" />{error}</div>}
@@ -141,7 +150,7 @@ export default function DeanClaimReview() {
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#534AB7', marginTop: 5, flexShrink: 0 }} />
               <div>
                 <div style={{ fontWeight: 500 }}>
-                  {log.action.replace(/_/g,' ')} {log.metadata?.version ? `(v${log.metadata.version})` : ''}
+                  {log.action.replace(/_/g, ' ')} {log.metadata?.version ? `(v${log.metadata.version})` : ''}
                 </div>
                 {log.metadata?.remarks && <div style={{ color: '#A32D2D', marginTop: 2, fontStyle: 'italic' }}>Remarks: "{log.metadata.remarks}"</div>}
                 <div style={{ color: '#888', fontSize: 12, marginTop: 2 }}>{log.actor_name || 'System'} · {new Date(log.created_at).toLocaleString('en-IN')}</div>
@@ -348,12 +357,12 @@ function BillItemsTable({ items = [], totalAmount }) {
 }
 
 function ItemDetailModal({ item, onClose }) {
-  const base     = parseFloat(item.unit_price || 0) * parseFloat(item.quantity || 1);
-  const cgstAmt  = (base * parseFloat(item.cgst_percent || 0)) / 100;
-  const sgstAmt  = (base * parseFloat(item.sgst_percent || 0)) / 100;
-  const igstAmt  = (base * parseFloat(item.igst_percent || 0)) / 100;
+  const base = parseFloat(item.unit_price || 0) * parseFloat(item.quantity || 1);
+  const cgstAmt = (base * parseFloat(item.cgst_percent || 0)) / 100;
+  const sgstAmt = (base * parseFloat(item.sgst_percent || 0)) / 100;
+  const igstAmt = (base * parseFloat(item.igst_percent || 0)) / 100;
   const otherCharges = parseFloat(item.other_charges || 0);
-  const total    = base + cgstAmt + sgstAmt + igstAmt + otherCharges;
+  const total = base + cgstAmt + sgstAmt + igstAmt + otherCharges;
 
   const Field = ({ label, value, full }) => (
     <div style={{ gridColumn: full ? '1 / -1' : undefined }}>

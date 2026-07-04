@@ -21,7 +21,7 @@ const groupItemsByInvoice = (items = []) => {
     } else {
       groups[key].other_charges += parseFloat(it.other_charges || 0);
     }
-    
+
     const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
     const cgst = base * parseFloat(it.cgst_percent || 0) / 100;
     const sgst = base * parseFloat(it.sgst_percent || 0) / 100;
@@ -88,6 +88,11 @@ export default function ClaimDetail() {
         <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}><i className="ti ti-arrow-left" /></button>
         <h1 className="page-title" style={{ margin: 0 }}>{claim.claim_no || 'Draft Claim'}</h1>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {claim.status !== 'DRAFT' && (
+            <button className="btn btn-ghost btn-sm" onClick={() => window.open(`/claims/${claim.id}/print`, '_blank')} style={{ background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}>
+              <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download
+            </button>
+          )}
           {claim.status === 'DRAFT' && (
             <button className="btn btn-danger btn-sm" onClick={handleDeleteDraft} disabled={deleting}>
               <i className="ti ti-trash" style={{ marginRight: 6 }} />{deleting ? 'Deleting...' : 'Delete Draft'}
@@ -107,7 +112,7 @@ export default function ClaimDetail() {
         <div className="card-body">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', padding: '10px 0' }}>
             <div style={{ position: 'absolute', left: '16.6%', right: '16.6%', height: 2, background: '#e5e5e3', zIndex: 0 }} />
-            
+
             {/* Step 1: Created */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, position: 'relative', width: '33.3%' }}>
               <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#EAF3DE', color: '#27500A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 'bold' }}>✓</div>
@@ -152,7 +157,7 @@ export default function ClaimDetail() {
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>Claim details {claim.version > 1 && `(Version ${claim.version})`}</span>
-          <span style={{ fontSize: 12, color: STATUS_COLORS[claim.status] || '#888', fontWeight: 600 }}>{claim.status.replace('_',' ')}</span>
+          <span style={{ fontSize: 12, color: STATUS_COLORS[claim.status] || '#888', fontWeight: 600 }}>{claim.status.replace('_', ' ')}</span>
         </div>
         <div className="card-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
           <div>
@@ -189,7 +194,7 @@ export default function ClaimDetail() {
             </div>
             <div className="card-body">
               {inv.gstin_vendor && <div style={{ fontSize: 11, color: '#666', marginBottom: 10 }}>Vendor GSTIN: <strong style={{ color: '#333' }}>{inv.gstin_vendor}</strong></div>}
-              
+
               <table className="table" style={{ marginBottom: 16 }}>
                 <thead>
                   <tr>
@@ -258,7 +263,7 @@ export default function ClaimDetail() {
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#534AB7', marginTop: 4, flexShrink: 0 }} />
                 <div>
                   <div style={{ fontWeight: 500 }}>
-                    {log.action.replace(/_/g,' ')} {log.metadata?.version ? `(v${log.metadata.version})` : ''}
+                    {log.action.replace(/_/g, ' ')} {log.metadata?.version ? `(v${log.metadata.version})` : ''}
                   </div>
                   {log.metadata?.remarks && <div style={{ color: '#A32D2D', marginTop: 2 }}>Remarks: {log.metadata.remarks}</div>}
                   <div style={{ color: '#888', fontSize: 12, marginTop: 2 }}>{log.actor_name || 'System'} · {new Date(log.created_at).toLocaleString('en-IN')}</div>

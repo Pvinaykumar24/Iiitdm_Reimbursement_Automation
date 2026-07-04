@@ -179,9 +179,7 @@ export default function DeanAllClaims() {
               <tr>
                 <th>Claim no.</th>
                 <th>Faculty</th>
-                <th>Faculty ID</th>
                 <th>Project</th>
-                <th>Purpose</th>
                 <th>Amount</th>
                 <th>Submitted</th>
                 <th>Status</th>
@@ -191,19 +189,19 @@ export default function DeanAllClaims() {
             <tbody>
               {filteredClaims.map(c => {
                 const cfg = STATUS_CONFIG[c.status] || { label: c.status, badgeClass: 'badge-draft', icon: 'ti-file' };
+                const canPrint = c.status !== 'DRAFT' && c.status !== 'SRIC_PENDING';
                 return (
                   <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/dean/claims/${c.id}`)}>
                     <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no}</td>
                     <td>
-                      <span style={{ color: '#534AB7', cursor: 'pointer', fontWeight: 500 }} onClick={e => { e.stopPropagation(); navigate(`/dean/faculty/${c.faculty_id}`); }}>
-                        {c.faculty_name}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ color: '#534AB7', cursor: 'pointer', fontWeight: 500 }} onClick={e => { e.stopPropagation(); navigate(`/dean/faculty/${c.faculty_id}`); }}>
+                          {c.faculty_name}
+                        </span>
+                        <span style={{ fontSize: 11, color: '#888', marginTop: 2 }}>ID: {c.employee_id || '—'}</span>
+                      </div>
                     </td>
-                    <td style={{ fontSize: 12, color: '#888' }}>{c.employee_id || '—'}</td>
                     <td style={{ fontSize: 12 }}>{c.project_no || '—'}</td>
-                    <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12 }}>
-                      {c.purpose}
-                    </td>
                     <td style={{ fontWeight: 500 }}>₹{parseFloat(c.total_amount || 0).toLocaleString('en-IN')}</td>
                     <td style={{ fontSize: 12, color: '#888' }}>
                       {c.submitted_at ? new Date(c.submitted_at).toLocaleDateString('en-IN') : '—'}
@@ -215,12 +213,27 @@ export default function DeanAllClaims() {
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={e => { e.stopPropagation(); navigate(`/dean/claims/${c.id}`); }}
-                      >
-                        View
-                      </button>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={e => { e.stopPropagation(); navigate(`/dean/claims/${c.id}`); }}
+                        >
+                          View
+                        </button>
+                        {canPrint && (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ padding: '4px 8px' }}
+                            title="Print Claim"
+                            onClick={e => {
+                              e.stopPropagation();
+                              window.open(`/claims/${c.id}/print`, '_blank');
+                            }}
+                          >
+                            <i className="ti ti-printer" style={{ fontSize: 14 }} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

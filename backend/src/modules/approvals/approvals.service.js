@@ -55,7 +55,7 @@ const sricDecision = async (claimId, sricUserId, action, remarks, itemBudgetHead
       `INSERT INTO audit_logs (claim_id, user_id, action, metadata)
        VALUES ($1,$2,$3,$4)`,
       [claimId, sricUserId, `SRIC_${action === 'APPROVED' ? 'VERIFIED' : 'REJECTED'}`,
-       JSON.stringify({ remarks, claim_no: claim.claim_no })]
+        JSON.stringify({ remarks, claim_no: claim.claim_no })]
     );
 
     const notifMsg = action === 'APPROVED'
@@ -105,7 +105,7 @@ const sricDecision = async (claimId, sricUserId, action, remarks, itemBudgetHead
 
   await sendEmail({
     to: claim.fac_email,
-    subject: `Claim ${claim.claim_no} — ${action === 'APPROVED' ? 'SRIC Recommended & Forwarded to Dean' : 'Returned by SRIC'}`,  
+    subject: `Claim ${claim.claim_no} — ${action === 'APPROVED' ? 'SRIC Recommended & Forwarded to Dean' : 'Returned by SRIC'}`,
     html: emailHtml,
   });
 
@@ -149,7 +149,7 @@ const deanDecision = async (claimId, deanId, action, remarks) => {
       `INSERT INTO audit_logs (claim_id, user_id, action, metadata)
        VALUES ($1,$2,$3,$4)`,
       [claimId, deanId, `DEAN_${action === 'APPROVED' ? 'APPROVED' : 'REJECTED'}`,
-       JSON.stringify({ remarks, claim_no: claim.claim_no })]
+        JSON.stringify({ remarks, claim_no: claim.claim_no })]
     );
 
     const notifMsg = action === 'APPROVED'

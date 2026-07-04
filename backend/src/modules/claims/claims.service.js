@@ -47,10 +47,10 @@ const addItem = async (claimId, facultyId, item) => {
        (SELECT COALESCE(MAX(item_order),0)+1 FROM claim_items WHERE claim_id=$1))
      RETURNING *`,
     [claimId, item.vendor_name, item.bill_no, item.bill_date, item.description,
-     item.quantity, item.unit_price,
-     item.cgst_percent || 0, item.sgst_percent || 0, item.igst_percent || 0,
-     item.total_amount, item.gstin_vendor || null,
-     item.quantity_unit || 'pcs', item.other_charges || 0]
+      item.quantity, item.unit_price,
+      item.cgst_percent || 0, item.sgst_percent || 0, item.igst_percent || 0,
+      item.total_amount, item.gstin_vendor || null,
+      item.quantity_unit || 'pcs', item.other_charges || 0]
   );
 
   await db.query(
@@ -170,7 +170,7 @@ const getMyClaims = async (facultyId) => {
 const getClaimById = async (claimId, userId, userRole) => {
   const { rows } = await db.query(
     `SELECT c.*,
-      u.name AS faculty_name, u.email AS faculty_email, u.department
+      u.name AS faculty_name, u.email AS faculty_email, u.department, u.employee_id, u.designation
      FROM claims c
      JOIN users u ON u.id=c.faculty_id
      WHERE c.id=$1`,

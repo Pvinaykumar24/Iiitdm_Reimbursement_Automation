@@ -79,6 +79,7 @@ export default function NewClaim() {
   }]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const itemsSaved = useRef(false);
 
   useState(() => {
@@ -216,7 +217,7 @@ export default function NewClaim() {
     setError(''); setLoading(true);
     try {
       await claimsApi.submit(claimId);
-      navigate('/faculty/claims');
+      setSubmitted(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Submission failed');
     } finally { setLoading(false); }
@@ -228,6 +229,34 @@ export default function NewClaim() {
   }, 0);
 
   const totalItemsCount = invoices.reduce((sum, inv) => sum + inv.products.length, 0);
+
+  if (submitted) {
+    return (
+      <div className="card" style={{ textAlign: 'center', padding: '40px 24px', maxWidth: 600, margin: '40px auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ fontSize: 54, color: '#27500A', marginBottom: 16 }}>✓</div>
+        <h2 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a1a', marginBottom: 10 }}>Claim Submitted Successfully!</h2>
+        <p style={{ color: '#666', fontSize: 13, lineHeight: 1.6, marginBottom: 24, maxWidth: 460 }}>
+          Your reimbursement claim has been successfully generated and forwarded to the <strong>SRIC Cell</strong>. Please print the official reimbursement form below and submit it along with physical bill receipts to the SRIC Section.
+        </p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <button
+            className="btn btn-ghost"
+            style={{ background: '#f5f5f4', border: '1px solid #d4d4d0', padding: '8px 16px' }}
+            onClick={() => navigate('/faculty/claims')}
+          >
+            Go to My Claims
+          </button>
+          <button
+            className="btn btn-primary"
+            style={{ padding: '8px 16px' }}
+            onClick={() => window.open(`/claims/${claimId}/print`, '_blank')}
+          >
+            <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download Form
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
