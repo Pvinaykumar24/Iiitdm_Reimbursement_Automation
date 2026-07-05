@@ -49,7 +49,6 @@ export default function DeanClaimReview() {
   const sricApproval = claim.approvals?.find(a => a.stage === 'SRIC_REVIEW');
   const deanApproval = claim.approvals?.find(a => a.stage === 'DEAN_REVIEW');
 
-  // Compute budget segregation summaries dynamically
   const budgetHeadSummaries = {};
   if (claim && claim.items) {
     claim.items.forEach(it => {
@@ -65,9 +64,9 @@ export default function DeanClaimReview() {
         <h1 className="page-title" style={{ margin: 0 }}>Review — {claim.claim_no}</h1>
         <span className={`badge ${badge.cls}`} style={{ marginLeft: 4 }}>{badge.label}</span>
         {claim.status !== 'DRAFT' && (
-          <button 
-            className="btn btn-ghost btn-sm" 
-            onClick={() => window.open(`/claims/${claim.id}/print`, '_blank')} 
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => window.open(`/claims/${claim.id}/print`, '_blank')}
             style={{ marginLeft: 'auto', background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}
           >
             <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download
@@ -103,7 +102,6 @@ export default function DeanClaimReview() {
         isPending={false}
       />
 
-      {/* Segregation Summary */}
       {claim.items && claim.items.length > 0 && (
         <div className="card" style={{ marginBottom: 16 }}>
           <div className="card-header">Budget Segregation (Classified by SRIC)</div>
@@ -118,7 +116,6 @@ export default function DeanClaimReview() {
         </div>
       )}
 
-      {/* SRIC verification notes */}
       {sricApproval && (
         <div className="card" style={{ marginBottom: 16, border: '1px solid #EAF3DE' }}>
           <div className="card-header" style={{ background: '#F4F9EE', color: '#27500A' }}>SRIC Cell Verification Info</div>
@@ -134,7 +131,7 @@ export default function DeanClaimReview() {
               </div>
             </div>
             {sricApproval.remarks && (
-              <div style={{ marginTop: 12, padding: '10px 12px', background: '#fcfcfc', borderLeft: '3px solid #3B6D11', fontSize: 13, fontStyle: 'italic' }}>
+              <div style={{ marginTop: 12, padding: '10px 12px', background: '#fcfcfc', borderLeft: '3.5px solid #3B6D11', fontSize: 13, fontStyle: 'italic' }}>
                 "{sricApproval.remarks}"
               </div>
             )}
@@ -364,6 +361,12 @@ function ItemDetailModal({ item, onClose }) {
   const otherCharges = parseFloat(item.other_charges || 0);
   const total = base + cgstAmt + sgstAmt + igstAmt + otherCharges;
 
+  const classifiedCgst = item.sric_cgst !== null && item.sric_cgst !== undefined ? parseFloat(item.sric_cgst) : null;
+  const classifiedSgst = item.sric_sgst !== null && item.sric_sgst !== undefined ? parseFloat(item.sric_sgst) : null;
+  const classifiedIgst = item.sric_igst !== null && item.sric_igst !== undefined ? parseFloat(item.sric_igst) : null;
+  const classifiedOther = item.sric_other_charges !== null && item.sric_other_charges !== undefined ? parseFloat(item.sric_other_charges) : null;
+  const classifiedTotal = (classifiedCgst || 0) + (classifiedSgst || 0) + (classifiedIgst || 0) + (classifiedOther || 0) + base;
+
   const Field = ({ label, value, full }) => (
     <div style={{ gridColumn: full ? '1 / -1' : undefined }}>
       <div style={{ fontSize: 11, color: '#888', marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
@@ -453,23 +456,39 @@ function ItemDetailModal({ item, onClose }) {
 
           <div style={{ borderTop: '1px solid #f0f0ee' }} />
 
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#534AB7', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              <i className="ti ti-calculator" style={{ marginRight: 6 }} />Pricing Breakdown
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#666', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Submitted Breakdown
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px' }}>
+                <Field label="Quantity" value={`${item.quantity} ${item.quantity_unit || 'pcs'}`} />
+                <Field label="Unit Price" value={`₹${parseFloat(item.unit_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                <Field label="Base Amount" value={`₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                <div />
+                <Field label={`CGST @ ${item.cgst_percent}%`} value={`₹${cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                <Field label={`SGST @ ${item.sgst_percent}%`} value={`₹${sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                {parseFloat(item.igst_percent) > 0 && (
+                  <Field label={`IGST @ ${item.igst_percent}%`} value={`₹${igstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                )}
+                {otherCharges > 0 && (
+                  <Field label="Other Charges" value={`₹${otherCharges.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                )}
+              </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px' }}>
-              <Field label="Quantity" value={`${item.quantity} ${item.quantity_unit || 'pcs'}`} />
-              <Field label="Unit Price" value={`₹${parseFloat(item.unit_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-              <Field label="Base Amount (Qty × Unit)" value={`₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-              <div />
-              <Field label={`CGST @ ${item.cgst_percent}%`} value={`₹${cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-              <Field label={`SGST @ ${item.sgst_percent}%`} value={`₹${sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-              {parseFloat(item.igst_percent) > 0 && (
-                <Field label={`IGST @ ${item.igst_percent}%`} value={`₹${igstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-              )}
-              {otherCharges > 0 && (
-                <Field label="Other Charges" value={`₹${otherCharges.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-              )}
+
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#27500A', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                SRIC Classified Breakdown
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px' }}>
+                <Field label="Base Amount" value={`₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
+                <div />
+                <Field label="Classified CGST" value={`₹${classifiedCgst?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '—'}`} />
+                <Field label="Classified SGST" value={`₹${classifiedSgst?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '—'}`} />
+                <Field label="Classified IGST" value={`₹${classifiedIgst?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '—'}`} />
+                <Field label="Classified Other" value={`₹${classifiedOther?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || '—'}`} />
+              </div>
             </div>
           </div>
 
@@ -477,9 +496,9 @@ function ItemDetailModal({ item, onClose }) {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             background: '#EEEDFE', borderRadius: 10, padding: '14px 18px',
           }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: '#534AB7' }}>Total Amount (incl. GST)</div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#534AB7' }}>Final Classified Total</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: '#534AB7' }}>
-              ₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{classifiedTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
         </div>

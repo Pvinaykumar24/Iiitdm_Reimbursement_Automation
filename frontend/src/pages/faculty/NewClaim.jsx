@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { claimsApi } from '../../api';
 
@@ -82,7 +82,7 @@ export default function NewClaim() {
   const [submitted, setSubmitted] = useState(false);
   const itemsSaved = useRef(false);
 
-  useState(() => {
+  useEffect(() => {
     const draftIdParam = new URLSearchParams(window.location.search).get('draftId');
     if (draftIdParam) {
       claimsApi.getById(draftIdParam).then(res => {
@@ -96,7 +96,7 @@ export default function NewClaim() {
         }
       }).catch(console.error);
     }
-  });
+  }, []);
 
   const handleStep1 = async (e) => {
     e.preventDefault();

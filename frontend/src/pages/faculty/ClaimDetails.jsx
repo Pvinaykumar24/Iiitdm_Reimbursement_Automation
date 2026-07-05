@@ -200,8 +200,7 @@ export default function ClaimDetail() {
                   <tr>
                     <th>Item</th>
                     <th>Description</th>
-                    <th>Budget Classification</th>
-                    <th style={{ textAlign: 'right' }}>Qty</th>
+                    <th style={{ width: 100, textAlign: 'right' }}>Qty</th>
                     <th style={{ textAlign: 'right' }}>Unit Price</th>
                     <th style={{ textAlign: 'right' }}>Total (incl. GST)</th>
                   </tr>
@@ -211,13 +210,6 @@ export default function ClaimDetail() {
                     <tr key={pIdx}>
                       <td>{pIdx + 1}</td>
                       <td>{p.description}</td>
-                      <td>
-                        {p.budget_head ? (
-                          <span className="badge badge-approved">{p.budget_head}</span>
-                        ) : (
-                          <span style={{ color: '#888', fontStyle: 'italic', fontSize: 12 }}>Pending</span>
-                        )}
-                      </td>
                       <td style={{ textAlign: 'right' }}>{p.quantity} {p.quantity_unit}</td>
                       <td style={{ textAlign: 'right' }}>₹{parseFloat(p.unit_price || 0).toFixed(2)}</td>
                       <td style={{ textAlign: 'right', fontWeight: 500 }}>₹{p.total_amount.toFixed(2)}</td>
