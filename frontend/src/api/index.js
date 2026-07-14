@@ -112,6 +112,10 @@ export const approvalsApi = {
 export const projectsApi = {
   getMy: () => api.get('/projects/my'),
   getBudgetHeads: (id) => api.get(`/projects/${id}/budget-heads`),
+  getAll: () => api.get('/projects'),
+  assignPI: (id, employeeId) => api.patch(`/projects/${id}/assign`, { employee_id: employeeId }),
+  create: (data) => api.post('/projects', data),
+  getFaculties: () => api.get('/projects/faculties'),
 };
 
 export const notificationsApi = {

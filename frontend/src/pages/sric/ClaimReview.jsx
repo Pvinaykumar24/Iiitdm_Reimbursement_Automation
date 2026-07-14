@@ -17,18 +17,70 @@ export default function SricClaimReview() {
       setClaim(r.data);
       const initialHeads = {};
       r.data.items?.forEach(it => {
-        initialHeads[it.id] = it.budget_head || 'Consumable';
+        initialHeads[it.id] = {
+          budget_head: it.budget_head || 'Consumable',
+          sric_cgst: 0,
+          sric_sgst: 0,
+          sric_igst: 0,
+          sric_other_charges: 0,
+        };
       });
       setItemBudgetHeads(initialHeads);
     }).catch(console.error).finally(() => setLoading(false));
   }, [id]);
+
+  const getValidationErrors = () => {
+    const errors = [];
+    if (!claim || !claim.items) return errors;
+
+    const invoices = groupItemsByInvoice(claim.items);
+    invoices.forEach(inv => {
+      let segregatedCGST = 0;
+      let segregatedSGST = 0;
+      let segregatedIGST = 0;
+      let segregatedOther = 0;
+
+      inv.products.forEach(p => {
+        const val = itemBudgetHeads[p.id] || {};
+        segregatedCGST += parseFloat(val.sric_cgst || 0);
+        segregatedSGST += parseFloat(val.sric_sgst || 0);
+        segregatedIGST += parseFloat(val.sric_igst || 0);
+        segregatedOther += parseFloat(val.sric_other_charges || 0);
+      });
+
+      const cgstMatch = Math.abs(segregatedCGST - inv.cgst_amount) <= 0.10;
+      const sgstMatch = Math.abs(segregatedSGST - inv.sgst_amount) <= 0.10;
+      const igstMatch = Math.abs(segregatedIGST - inv.igst_amount) <= 0.10;
+      const otherMatch = Math.abs(segregatedOther - inv.other_charges) <= 0.10;
+
+      if (!cgstMatch || !sgstMatch || !igstMatch || !otherMatch) {
+        let msg = `Validation Mismatch on Invoice No: "${inv.bill_no}" (Vendor: ${inv.vendor_name}):`;
+        if (!cgstMatch) msg += ` CGST mismatch (Segregated: ₹${segregatedCGST.toFixed(2)}, Faculty: ₹${inv.cgst_amount.toFixed(2)});`;
+        if (!sgstMatch) msg += ` SGST mismatch (Segregated: ₹${segregatedSGST.toFixed(2)}, Faculty: ₹${inv.sgst_amount.toFixed(2)});`;
+        if (!igstMatch) msg += ` IGST mismatch (Segregated: ₹${segregatedIGST.toFixed(2)}, Faculty: ₹${inv.igst_amount.toFixed(2)});`;
+        if (!otherMatch) msg += ` Other Charges mismatch (Segregated: ₹${segregatedOther.toFixed(2)}, Faculty: ₹${inv.other_charges.toFixed(2)});`;
+        errors.push(msg);
+      }
+    });
+    return errors;
+  };
 
   const decide = async (action) => {
     if (action === 'REJECTED' && !remarks.trim()) {
       setError('Please provide a reason for rejection.');
       return;
     }
-    setError(''); setSubmitting(true);
+    setError('');
+    
+    if (action === 'APPROVED') {
+      const validationErrors = getValidationErrors();
+      if (validationErrors.length > 0) {
+        setError(validationErrors[0]);
+        return;
+      }
+    }
+
+    setSubmitting(true);
     try {
       await approvalsApi.sricDecide(id, action, remarks, action === 'APPROVED' ? itemBudgetHeads : undefined);
       navigate('/sric/pending');
@@ -56,14 +108,24 @@ export default function SricClaimReview() {
   const badge = STATUS_BADGE[claim.status] || { cls: 'badge-draft', label: claim.status };
   const sricApproval = claim.approvals?.find(a => a.stage === 'SRIC_REVIEW');
 
-  // Compute budget segregation summaries dynamically
+  // Compute budget segregation summaries dynamically using SRIC-entered values only
   const budgetHeadSummaries = {};
   if (claim && claim.items) {
     claim.items.forEach(it => {
-      const bh = itemBudgetHeads[it.id] || it.budget_head || 'Consumable';
-      budgetHeadSummaries[bh] = (budgetHeadSummaries[bh] || 0) + parseFloat(it.total_amount || 0);
+      const val = itemBudgetHeads[it.id];
+      const bh = (val && typeof val === 'object') ? val.budget_head : (val || it.budget_head || 'Consumable');
+      const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
+      const sricVal = (val && typeof val === 'object') ? val : {};
+      const sricSum = base
+        + parseFloat(sricVal.sric_cgst          || 0)
+        + parseFloat(sricVal.sric_sgst          || 0)
+        + parseFloat(sricVal.sric_igst          || 0)
+        + parseFloat(sricVal.sric_other_charges || 0);
+      budgetHeadSummaries[bh] = (budgetHeadSummaries[bh] || 0) + sricSum;
     });
   }
+
+  const validationErrors = getValidationErrors();
 
   return (
     <>
@@ -83,6 +145,12 @@ export default function SricClaimReview() {
       </div>
 
       {error && <div className="alert alert-error"><i className="ti ti-alert-circle" />{error}</div>}
+      {isPending && validationErrors.map((errText, errIdx) => (
+        <div key={errIdx} className="alert alert-error" style={{ marginBottom: 12 }}>
+          <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />
+          {errText}
+        </div>
+      ))}
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header">Claim details</div>
@@ -158,7 +226,7 @@ export default function SricClaimReview() {
               <button className="btn btn-danger" onClick={() => decide('REJECTED')} disabled={submitting}>
                 <i className="ti ti-x" style={{ marginRight: 6 }} />{submitting ? 'Processing...' : 'Reject & Return'}
               </button>
-              <button className="btn btn-success" onClick={() => decide('APPROVED')} disabled={submitting}>
+              <button className="btn btn-success" onClick={() => decide('APPROVED')} disabled={submitting || validationErrors.length > 0}>
                 <i className="ti ti-check" style={{ marginRight: 6 }} />{submitting ? 'Processing...' : 'Verify & Forward to Dean'}
               </button>
             </div>
@@ -214,21 +282,25 @@ const groupItemsByInvoice = (items = []) => {
         bill_no: it.bill_no,
         bill_date: it.bill_date,
         gstin_vendor: it.gstin_vendor,
-        cgst_percent: parseFloat(it.cgst_percent || 0),
-        sgst_percent: parseFloat(it.sgst_percent || 0),
-        igst_percent: parseFloat(it.igst_percent || 0),
-        other_charges: parseFloat(it.other_charges || 0),
+        cgst_amount: 0,
+        sgst_amount: 0,
+        igst_amount: 0,
+        other_charges: 0,
         products: []
       };
-    } else {
-      groups[key].other_charges += parseFloat(it.other_charges || 0);
     }
 
     const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
-    const cgst = base * parseFloat(it.cgst_percent || 0) / 100;
-    const sgst = base * parseFloat(it.sgst_percent || 0) / 100;
-    const igst = base * parseFloat(it.igst_percent || 0) / 100;
+    const cgst = parseFloat(it.cgst_amount || 0);
+    const sgst = parseFloat(it.sgst_amount || 0);
+    const igst = parseFloat(it.igst_amount || 0);
+    const other = parseFloat(it.other_charges || 0);
     const prodTotal = base + cgst + sgst + igst;
+
+    groups[key].cgst_amount += cgst;
+    groups[key].sgst_amount += sgst;
+    groups[key].igst_amount += igst;
+    groups[key].other_charges += other;
 
     groups[key].products.push({
       ...it,
@@ -242,6 +314,16 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
   const [selectedItem, setSelectedItem] = useState(null);
   const invoices = groupItemsByInvoice(items);
 
+  const handleTaxChange = (itemId, field, value) => {
+    setItemBudgetHeads(prev => ({
+      ...prev,
+      [itemId]: {
+        ...(prev[itemId] || {}),
+        [field]: value
+      }
+    }));
+  };
+
   return (
     <>
       <div style={{ fontSize: 15, fontWeight: 600, color: '#444', marginBottom: 12 }}>
@@ -250,11 +332,7 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
 
       {invoices.map((inv, idx) => {
         const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)), 0);
-        const invGst = inv.products.reduce((sum, p) => {
-          const base = parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1);
-          const tax = base * (parseFloat(inv.cgst_percent || 0) + parseFloat(inv.sgst_percent || 0) + parseFloat(inv.igst_percent || 0)) / 100;
-          return sum + tax;
-        }, 0);
+        const invGst = inv.cgst_amount + inv.sgst_amount + inv.igst_amount;
         const invTotal = inv.products.reduce((sum, p) => sum + p.prod_total, 0) + parseFloat(inv.other_charges || 0);
 
         return (
@@ -290,21 +368,97 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                       onClick={() => setSelectedItem(p)}
                     >
                       <td>{pIdx + 1}</td>
-                      <td>{p.description}</td>
+                      <td>
+                        <div>{p.description}</div>
+                      </td>
                       <td onClick={e => e.stopPropagation()}>
                         {isPending ? (
-                          <select
-                            value={itemBudgetHeads[p.id] || 'Consumable'}
-                            onChange={e => setItemBudgetHeads({ ...itemBudgetHeads, [p.id]: e.target.value })}
-                            style={{ width: '100%', padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #d4d4d0' }}
-                          >
-                            {DEAN_BUDGET_HEADS.map(bh => (
-                              <option key={bh} value={bh}>{bh}</option>
-                            ))}
-                          </select>
+                          <div>
+                            <select
+                              value={itemBudgetHeads[p.id]?.budget_head || 'Consumable'}
+                              onChange={e => {
+                                const existing = itemBudgetHeads[p.id] || {};
+                                setItemBudgetHeads({
+                                  ...itemBudgetHeads,
+                                  [p.id]: { ...existing, budget_head: e.target.value }
+                                });
+                              }}
+                              style={{ width: '100%', padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #d4d4d0' }}
+                            >
+                              {DEAN_BUDGET_HEADS.map(bh => (
+                                <option key={bh} value={bh}>{bh}</option>
+                              ))}
+                            </select>
+
+                            <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, background: '#fafafa', border: '1px solid #e4e4e7', borderRadius: 6, padding: 6 }}>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>CGST (₹)</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  placeholder="0.00"
+                                  value={itemBudgetHeads[p.id]?.sric_cgst ?? ''}
+                                  onChange={e => handleTaxChange(p.id, 'sric_cgst', e.target.value)}
+                                  onWheel={e => e.target.blur()}
+                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>SGST (₹)</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  placeholder="0.00"
+                                  value={itemBudgetHeads[p.id]?.sric_sgst ?? ''}
+                                  onChange={e => handleTaxChange(p.id, 'sric_sgst', e.target.value)}
+                                  onWheel={e => e.target.blur()}
+                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>IGST (₹)</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  placeholder="0.00"
+                                  value={itemBudgetHeads[p.id]?.sric_igst ?? ''}
+                                  onChange={e => handleTaxChange(p.id, 'sric_igst', e.target.value)}
+                                  onWheel={e => e.target.blur()}
+                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>Other (₹)</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min={0}
+                                  placeholder="0.00"
+                                  value={itemBudgetHeads[p.id]?.sric_other_charges ?? ''}
+                                  onChange={e => handleTaxChange(p.id, 'sric_other_charges', e.target.value)}
+                                  onWheel={e => e.target.blur()}
+                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                />
+                              </div>
+                            </div>
+                          </div>
                         ) : (
                           p.budget_head ? (
-                            <span className="badge badge-approved" style={{ fontSize: 11 }}>{p.budget_head}</span>
+                            <div>
+                              <span className="badge badge-approved" style={{ fontSize: 11 }}>{p.budget_head}</span>
+                              {(parseFloat(p.sric_cgst) > 0 || parseFloat(p.sric_sgst) > 0 || parseFloat(p.sric_igst) > 0 || parseFloat(p.sric_other_charges) > 0) && (
+                                <div style={{ fontSize: 10, color: '#666', marginTop: 4, lineHeight: 1.4 }}>
+                                  <strong>Segregation:</strong>
+                                  {parseFloat(p.sric_cgst) > 0 && ` CGST: ₹${parseFloat(p.sric_cgst).toFixed(2)}`}
+                                  {parseFloat(p.sric_sgst) > 0 && ` SGST: ₹${parseFloat(p.sric_sgst).toFixed(2)}`}
+                                  {parseFloat(p.sric_igst) > 0 && ` IGST: ₹${parseFloat(p.sric_igst).toFixed(2)}`}
+                                  {parseFloat(p.sric_other_charges) > 0 && ` Other: ₹${parseFloat(p.sric_other_charges).toFixed(2)}`}
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <span style={{ color: '#888', fontStyle: 'italic', fontSize: 12 }}>—</span>
                           )
@@ -312,7 +466,7 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                       </td>
                       <td style={{ textAlign: 'right' }}>{p.quantity} {p.quantity_unit || 'pcs'}</td>
                       <td style={{ textAlign: 'right' }}>₹{parseFloat(p.unit_price || 0).toFixed(2)}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 500 }}>₹{p.prod_total.toFixed(2)}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 500 }}>₹{(parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -320,12 +474,12 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#1a1a1a', fontWeight: '600' }}>
                 <div>Base Amount: ₹{invBase.toFixed(2)}</div>
-                {(parseFloat(inv.cgst_percent) > 0 || parseFloat(inv.sgst_percent) > 0 || parseFloat(inv.igst_percent) > 0) && (
+                {invGst > 0 && (
                   <div>
                     GST ({[
-                      parseFloat(inv.cgst_percent) > 0 && `CGST ${inv.cgst_percent}%`,
-                      parseFloat(inv.sgst_percent) > 0 && `SGST ${inv.sgst_percent}%`,
-                      parseFloat(inv.igst_percent) > 0 && `IGST ${inv.igst_percent}%`
+                      inv.cgst_amount > 0 && `CGST: ₹${inv.cgst_amount.toFixed(2)}`,
+                      inv.sgst_amount > 0 && `SGST: ₹${inv.sgst_amount.toFixed(2)}`,
+                      inv.igst_amount > 0 && `IGST: ₹${inv.igst_amount.toFixed(2)}`
                     ].filter(Boolean).join(', ')}): ₹{invGst.toFixed(2)}
                   </div>
                 )}
@@ -333,6 +487,41 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                 <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 700, marginTop: 4 }}>
                   Invoice Total: ₹{invTotal.toFixed(2)}
                 </div>
+                {(() => {
+                  let invoiceSegregatedCGST = 0;
+                  let invoiceSegregatedSGST = 0;
+                  let invoiceSegregatedIGST = 0;
+                  let invoiceSegregatedOther = 0;
+                  inv.products.forEach(p => {
+                    const val = itemBudgetHeads[p.id] || {};
+                    invoiceSegregatedCGST += parseFloat(val.sric_cgst || 0);
+                    invoiceSegregatedSGST += parseFloat(val.sric_sgst || 0);
+                    invoiceSegregatedIGST += parseFloat(val.sric_igst || 0);
+                    invoiceSegregatedOther += parseFloat(val.sric_other_charges || 0);
+                  });
+                  const cgstMatched = Math.abs(invoiceSegregatedCGST - inv.cgst_amount) <= 0.10;
+                  const sgstMatched = Math.abs(invoiceSegregatedSGST - inv.sgst_amount) <= 0.10;
+                  const igstMatched = Math.abs(invoiceSegregatedIGST - inv.igst_amount) <= 0.10;
+                  const otherMatched = Math.abs(invoiceSegregatedOther - inv.other_charges) <= 0.10;
+                  return isPending && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, fontSize: 11, marginTop: 8 }}>
+                      <div style={{ color: cgstMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
+                        CGST: ₹{invoiceSegregatedCGST.toFixed(2)} segregated  /  ₹{inv.cgst_amount.toFixed(2)} entered
+                      </div>
+                      <div style={{ color: sgstMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
+                        SGST: ₹{invoiceSegregatedSGST.toFixed(2)} segregated  /  ₹{inv.sgst_amount.toFixed(2)} entered
+                      </div>
+                      <div style={{ color: igstMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
+                        IGST: ₹{invoiceSegregatedIGST.toFixed(2)} segregated  /  ₹{inv.igst_amount.toFixed(2)} entered
+                      </div>
+                      {inv.other_charges > 0 && (
+                        <div style={{ color: otherMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
+                          Other: ₹{invoiceSegregatedOther.toFixed(2)} segregated  /  ₹{inv.other_charges.toFixed(2)} entered
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

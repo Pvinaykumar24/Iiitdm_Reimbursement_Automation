@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { claimsApi } from '../../api';
+import { claimsApi, projectsApi } from '../../api';
 
 
 const QUANTITY_UNITS = ['pcs', 'kg', 'liter', 'box', 'packet', 'meter', 'other'];
@@ -56,16 +56,46 @@ const EMPTY_INVOICE = {
   cgst_percent: '',
   sgst_percent: '',
   igst_percent: '',
-  other_charges: '',
+  other_percent: '',
+  cgst_type: 'percent',
+  sgst_type: 'percent',
+  igst_type: 'percent',
+  other_type: 'value',
+  cgst_value: '',
+  sgst_value: '',
+  igst_value: '',
+  other_value: '',
   products: [{ ...EMPTY_PRODUCT }]
 };
 
-const calcProductTotal = (prod, inv) => {
-  const base = parseFloat(prod.unit_price || 0) * (parseInt(prod.quantity) || 0);
-  const cgst = base * parseFloat(inv.cgst_percent || 0) / 100;
-  const sgst = base * parseFloat(inv.sgst_percent || 0) / 100;
-  const igst = base * parseFloat(inv.igst_percent || 0) / 100;
-  return parseFloat((base + cgst + sgst + igst).toFixed(2));
+const getEffectiveInvoiceTaxes = (inv) => {
+  const baseTotal = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0);
+  
+  let cgst_amt = parseFloat(inv.cgst_value || 0);
+  if (inv.cgst_type === 'percent') {
+    cgst_amt = baseTotal * parseFloat(inv.cgst_percent || 0) / 100;
+  }
+  
+  let sgst_amt = parseFloat(inv.sgst_value || 0);
+  if (inv.sgst_type === 'percent') {
+    sgst_amt = baseTotal * parseFloat(inv.sgst_percent || 0) / 100;
+  }
+
+  let igst_amt = parseFloat(inv.igst_value || 0);
+  if (inv.igst_type === 'percent') {
+    igst_amt = baseTotal * parseFloat(inv.igst_percent || 0) / 100;
+  }
+
+  let other_amt = parseFloat(inv.other_value || 0);
+  if (inv.other_type === 'percent') {
+    other_amt = baseTotal * parseFloat(inv.other_percent || 0) / 100;
+  }
+  
+  return { cgst_amt, sgst_amt, igst_amt, other_amt };
+};
+
+const calcProductTotal = (prod) => {
+  return parseFloat((parseFloat(prod.unit_price || 0) * (parseInt(prod.quantity) || 0)).toFixed(2));
 };
 
 export default function NewClaim() {
@@ -80,9 +110,22 @@ export default function NewClaim() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [myProjects, setMyProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
   const itemsSaved = useRef(false);
 
   useEffect(() => {
+    // Fetch PI's assigned projects
+    setProjectsLoading(true);
+    projectsApi.getMy()
+      .then(res => {
+        setMyProjects(res.data);
+      })
+      .catch(err => {
+        console.error('Failed to fetch assigned projects:', err);
+      })
+      .finally(() => setProjectsLoading(false));
+
     const draftIdParam = new URLSearchParams(window.location.search).get('draftId');
     if (draftIdParam) {
       claimsApi.getById(draftIdParam).then(res => {
@@ -117,12 +160,7 @@ export default function NewClaim() {
   const updateInvoiceHeader = (invIdx, field, val) => {
     const nextInvoices = invoices.map((inv, i) => {
       if (i !== invIdx) return inv;
-      const updatedInv = { ...inv, [field]: val };
-      updatedInv.products = updatedInv.products.map(p => ({
-        ...p,
-        total_amount: calcProductTotal(p, updatedInv)
-      }));
-      return updatedInv;
+      return { ...inv, [field]: val };
     });
     setInvoices(nextInvoices);
   };
@@ -133,7 +171,7 @@ export default function NewClaim() {
       const nextProducts = inv.products.map((p, j) => {
         if (j !== prodIdx) return p;
         const updatedProd = { ...p, [field]: val };
-        updatedProd.total_amount = calcProductTotal(updatedProd, inv);
+        updatedProd.total_amount = calcProductTotal(updatedProd);
         return updatedProd;
       });
       return { ...inv, products: nextProducts };
@@ -184,21 +222,32 @@ export default function NewClaim() {
 
       const flatItems = [];
       for (const inv of invoices) {
-        inv.products.forEach((prod, pIdx) => {
+        const baseTotal = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0);
+        const { cgst_amt, sgst_amt, igst_amt, other_amt } = getEffectiveInvoiceTaxes(inv);
+
+        inv.products.forEach((prod) => {
+          const base = parseFloat(prod.unit_price || 0) * (parseInt(prod.quantity) || 0);
+          const ratio = baseTotal > 0 ? (base / baseTotal) : 0;
+          
+          const itemCgst = parseFloat((cgst_amt * ratio).toFixed(2));
+          const itemSgst = parseFloat((sgst_amt * ratio).toFixed(2));
+          const itemIgst = parseFloat((igst_amt * ratio).toFixed(2));
+          const itemOther = parseFloat((other_amt * ratio).toFixed(2));
+
           flatItems.push({
             vendor_name: inv.vendor_name,
             bill_no: inv.bill_no,
             bill_date: inv.bill_date,
             gstin_vendor: inv.gstin_vendor || null,
-            cgst_percent: parseFloat(inv.cgst_percent || 0),
-            sgst_percent: parseFloat(inv.sgst_percent || 0),
-            igst_percent: parseFloat(inv.igst_percent || 0),
-            other_charges: pIdx === 0 ? parseFloat(inv.other_charges || 0) : 0,
+            cgst_amount: itemCgst,
+            sgst_amount: itemSgst,
+            igst_amount: itemIgst,
+            other_charges: itemOther,
             description: prod.description,
             quantity: parseInt(prod.quantity || 1),
             quantity_unit: prod.quantity_unit || 'pcs',
             unit_price: parseFloat(prod.unit_price || 0),
-            total_amount: prod.total_amount + (pIdx === 0 ? parseFloat(inv.other_charges || 0) : 0)
+            total_amount: parseFloat((base + itemCgst + itemSgst + itemIgst + itemOther).toFixed(2))
           });
         });
       }
@@ -290,20 +339,36 @@ export default function NewClaim() {
           <div className="card-body">
             <form onSubmit={handleStep1}>
               <div className="form-group">
-                <label className="form-label">Project number / name *</label>
-                <input
-                  type="text"
-                  value={form.project_no}
-                  onChange={e => setForm({ ...form, project_no: e.target.value })}
-                  placeholder="e.g., DST/2024/001 or SERB Project on Robotics"
-                  required
-                />
+                <label className="form-label">Project *</label>
+                {projectsLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#666' }}>
+                    <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                    Loading assigned projects...
+                  </div>
+                ) : myProjects.length === 0 ? (
+                  <div style={{ padding: '10px 14px', background: '#FFF5F5', border: '1px solid #E53E3E', color: '#C53030', borderRadius: 6, fontSize: '13px', fontWeight: 500, lineHeight: 1.4 }}>
+                    <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />
+                    No assigned projects found. Please contact the SRIC Cell to assign a project to your profile before creating a claim.
+                  </div>
+                ) : (
+                  <select
+                    value={form.project_no}
+                    onChange={e => setForm({ ...form, project_no: e.target.value })}
+                    required
+                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #d4d4d0', borderRadius: 6, fontSize: '13px', background: '#fff', outline: 'none' }}
+                  >
+                    <option value="">-- Select Assigned Project --</option>
+                    {myProjects.map(p => (
+                      <option key={p.id} value={p.project_no}>
+                        {p.project_no} — {p.title}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
-                  Enter your funding agency project number or a short project name.
+                  Select the project funding this reimbursement claim from your assigned list.
                 </div>
               </div>
-
-
 
               <div className="form-group">
                 <label className="form-label">Purpose of expenditure *</label>
@@ -316,7 +381,7 @@ export default function NewClaim() {
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary" disabled={loading}>
+              <button type="submit" className="btn btn-primary" disabled={loading || projectsLoading || myProjects.length === 0}>
                 {loading ? 'Creating...' : 'Continue →'}
               </button>
             </form>
@@ -376,6 +441,16 @@ export default function NewClaim() {
                 <div style={{ background: '#fcfcfb', border: '1px dashed #d4d4d0', borderRadius: 8, padding: '12px 14px' }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#534AB7', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Products / Items</div>
 
+                  <div style={{ display: 'grid', gridTemplateColumns: '30px 2fr 80px 100px 120px 100px 40px', gap: 10, marginBottom: 6, fontSize: 11, fontWeight: 600, color: '#666', paddingBottom: 4, borderBottom: '1px solid #f0f0ee' }}>
+                    <div style={{ textAlign: 'center' }}>#</div>
+                    <div>Description *</div>
+                    <div>Qty *</div>
+                    <div>Unit</div>
+                    <div>Unit Price (₹) *</div>
+                    <div style={{ textAlign: 'right', paddingRight: 10 }}>Total (₹)</div>
+                    <div></div>
+                  </div>
+
                   {inv.products.map((prod, pIdx) => (
                     <div key={pIdx} style={{ display: 'grid', gridTemplateColumns: '30px 2fr 80px 100px 120px 100px 40px', gap: 10, alignItems: 'center', marginBottom: 8 }}>
                       <div style={{ textAlign: 'center', fontWeight: 500, fontSize: 13, color: '#666' }}>{pIdx + 1}</div>
@@ -393,7 +468,7 @@ export default function NewClaim() {
                         </select>
                       </div>
                       <div>
-                        <input type="number" step="0.01" min={0} placeholder="Unit Price (₹) *" value={prod.unit_price} onChange={e => updateProduct(idx, pIdx, 'unit_price', e.target.value)} required />
+                        <input type="number" step="0.01" min={0} placeholder="Unit Price *" value={prod.unit_price} onChange={e => updateProduct(idx, pIdx, 'unit_price', e.target.value)} required />
                       </div>
                       <div style={{ fontWeight: 500, textAlign: 'right', paddingRight: 10, fontSize: 13 }}>
                         ₹{(prod.total_amount || 0).toFixed(2)}
@@ -414,40 +489,100 @@ export default function NewClaim() {
                 </div>
 
                 {/* Tax & Extra Row */}
-                <div className="form-row form-row-4" style={{ marginTop: 4 }}>
+                <div className="form-row form-row-4" style={{ marginTop: 10 }}>
                   <div className="form-group">
-                    <label className="form-label">CGST %</label>
-                    <input type="number" step="0.01" min={0} value={inv.cgst_percent} onChange={e => updateInvoiceHeader(idx, 'cgst_percent', e.target.value)} />
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      CGST
+                      <select 
+                        value={inv.cgst_type || 'percent'} 
+                        onChange={e => updateInvoiceHeader(idx, 'cgst_type', e.target.value)}
+                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
+                      >
+                        <option value="percent">%</option>
+                        <option value="value">₹</option>
+                      </select>
+                    </label>
+                    {inv.cgst_type === 'value' ? (
+                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.cgst_value || ''} onChange={e => updateInvoiceHeader(idx, 'cgst_value', e.target.value)} />
+                    ) : (
+                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.cgst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'cgst_percent', e.target.value)} />
+                    )}
                   </div>
                   <div className="form-group">
-                    <label className="form-label">SGST %</label>
-                    <input type="number" step="0.01" min={0} value={inv.sgst_percent} onChange={e => updateInvoiceHeader(idx, 'sgst_percent', e.target.value)} />
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      SGST
+                      <select 
+                        value={inv.sgst_type || 'percent'} 
+                        onChange={e => updateInvoiceHeader(idx, 'sgst_type', e.target.value)}
+                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
+                      >
+                        <option value="percent">%</option>
+                        <option value="value">₹</option>
+                      </select>
+                    </label>
+                    {inv.sgst_type === 'value' ? (
+                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.sgst_value || ''} onChange={e => updateInvoiceHeader(idx, 'sgst_value', e.target.value)} />
+                    ) : (
+                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.sgst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'sgst_percent', e.target.value)} />
+                    )}
                   </div>
                   <div className="form-group">
-                    <label className="form-label">IGST %</label>
-                    <input type="number" step="0.01" min={0} value={inv.igst_percent} onChange={e => updateInvoiceHeader(idx, 'igst_percent', e.target.value)} />
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      IGST
+                      <select 
+                        value={inv.igst_type || 'percent'} 
+                        onChange={e => updateInvoiceHeader(idx, 'igst_type', e.target.value)}
+                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
+                      >
+                        <option value="percent">%</option>
+                        <option value="value">₹</option>
+                      </select>
+                    </label>
+                    {inv.igst_type === 'value' ? (
+                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.igst_value || ''} onChange={e => updateInvoiceHeader(idx, 'igst_value', e.target.value)} />
+                    ) : (
+                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.igst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'igst_percent', e.target.value)} />
+                    )}
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Other charges (₹)</label>
-                    <input type="number" step="0.01" min={0} value={inv.other_charges} onChange={e => updateInvoiceHeader(idx, 'other_charges', e.target.value)} />
+                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      Other Charges
+                      <select 
+                        value={inv.other_type || 'value'} 
+                        onChange={e => updateInvoiceHeader(idx, 'other_type', e.target.value)}
+                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
+                      >
+                        <option value="percent">%</option>
+                        <option value="value">₹</option>
+                      </select>
+                    </label>
+                    {inv.other_type === 'percent' ? (
+                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.other_percent || ''} onChange={e => updateInvoiceHeader(idx, 'other_percent', e.target.value)} />
+                    ) : (
+                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.other_value || ''} onChange={e => updateInvoiceHeader(idx, 'other_value', e.target.value)} />
+                    )}
                   </div>
                 </div>
 
                 {/* Calculation Info */}
-                <div style={{ fontSize: 12, color: '#666', background: '#fafaf9', padding: '10px 14px', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: 12, color: '#666', background: '#fafaf9', padding: '10px 14px', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
                   <div>
                     Products Base: ₹{inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0).toFixed(2)} ·
-                    GST: ₹{inv.products.reduce((sum, p) => {
-                      const base = parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0);
-                      const tax = base * (parseFloat(inv.cgst_percent || 0) + parseFloat(inv.sgst_percent || 0) + parseFloat(inv.igst_percent || 0)) / 100;
-                      return sum + tax;
-                    }, 0).toFixed(2)} ·
-                    Other charges: ₹{parseFloat(inv.other_charges || 0).toFixed(2)}
+                    GST Total: ₹{(() => {
+                      const { cgst_amt, sgst_amt, igst_amt } = getEffectiveInvoiceTaxes(inv);
+                      return (cgst_amt + sgst_amt + igst_amt).toFixed(2);
+                    })()} ·
+                    Other charges: ₹{(() => {
+                      const { other_amt } = getEffectiveInvoiceTaxes(inv);
+                      return other_amt.toFixed(2);
+                    })()}
                   </div>
                   <div>
-                    <strong style={{ color: '#1a1a1a', fontSize: 13 }}>Invoice Total: ₹{(
-                      inv.products.reduce((sum, p) => sum + p.total_amount, 0) + parseFloat(inv.other_charges || 0)
-                    ).toFixed(2)}</strong>
+                    <strong style={{ color: '#1a1a1a', fontSize: 13 }}>Invoice Total: ₹{(() => {
+                      const baseTotal = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0);
+                      const { cgst_amt, sgst_amt, igst_amt, other_amt } = getEffectiveInvoiceTaxes(inv);
+                      return (baseTotal + cgst_amt + sgst_amt + igst_amt + other_amt).toFixed(2);
+                    })()}</strong>
                   </div>
                 </div>
 
@@ -489,12 +624,9 @@ export default function NewClaim() {
 
           {invoices.map((inv, idx) => {
             const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0);
-            const invGst = inv.products.reduce((sum, p) => {
-              const base = parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0);
-              const tax = base * (parseFloat(inv.cgst_percent || 0) + parseFloat(inv.sgst_percent || 0) + parseFloat(inv.igst_percent || 0)) / 100;
-              return sum + tax;
-            }, 0);
-            const invTotal = inv.products.reduce((sum, p) => sum + p.total_amount, 0) + parseFloat(inv.other_charges || 0);
+            const { cgst_amt, sgst_amt, igst_amt, other_amt } = getEffectiveInvoiceTaxes(inv);
+            const invGst = cgst_amt + sgst_amt + igst_amt;
+            const invTotal = invBase + invGst + other_amt;
 
             return (
               <div key={idx} className="card" style={{ marginBottom: 16 }}>
@@ -533,16 +665,16 @@ export default function NewClaim() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#1a1a1a', fontWeight: '600' }}>
                     <div>Base Amount: ₹{invBase.toFixed(2)}</div>
-                    {(parseFloat(inv.cgst_percent) > 0 || parseFloat(inv.sgst_percent) > 0 || parseFloat(inv.igst_percent) > 0) && (
+                    {(cgst_amt > 0 || sgst_amt > 0 || igst_amt > 0) && (
                       <div>
                         GST ({[
-                          parseFloat(inv.cgst_percent) > 0 && `CGST ${inv.cgst_percent}%`,
-                          parseFloat(inv.sgst_percent) > 0 && `SGST ${inv.sgst_percent}%`,
-                          parseFloat(inv.igst_percent) > 0 && `IGST ${inv.igst_percent}%`
+                          cgst_amt > 0 && `CGST: ₹${cgst_amt.toFixed(2)}`,
+                          sgst_amt > 0 && `SGST: ₹${sgst_amt.toFixed(2)}`,
+                          igst_amt > 0 && `IGST: ₹${igst_amt.toFixed(2)}`
                         ].filter(Boolean).join(', ')}): ₹{invGst.toFixed(2)}
                       </div>
                     )}
-                    {parseFloat(inv.other_charges) > 0 && <div>Other Charges: ₹{parseFloat(inv.other_charges).toFixed(2)}</div>}
+                    {other_amt > 0 && <div>Other Charges: ₹{other_amt.toFixed(2)}</div>}
                     <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 700, marginTop: 4 }}>
                       Invoice Total: ₹{invTotal.toFixed(2)}
                     </div>

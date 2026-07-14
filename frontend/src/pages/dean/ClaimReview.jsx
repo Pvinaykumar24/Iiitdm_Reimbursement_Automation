@@ -63,7 +63,7 @@ export default function DeanClaimReview() {
         <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}><i className="ti ti-arrow-left" /></button>
         <h1 className="page-title" style={{ margin: 0 }}>Review — {claim.claim_no}</h1>
         <span className={`badge ${badge.cls}`} style={{ marginLeft: 4 }}>{badge.label}</span>
-        {claim.status !== 'DRAFT' && (
+                {claim.status !== 'DRAFT' && claim.status !== 'SRIC_PENDING' && claim.status !== 'SRIC_REJECTED' && (
           <button
             className="btn btn-ghost btn-sm"
             onClick={() => window.open(`/claims/${claim.id}/print`, '_blank')}

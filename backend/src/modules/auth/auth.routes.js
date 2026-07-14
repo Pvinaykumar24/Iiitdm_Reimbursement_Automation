@@ -25,7 +25,7 @@ const completeRegSchema = {
   password: { required: true, type: 'string', minLength: 6 },
 };
 
-router.post('/login',                  rateLimit(15 * 60 * 1000, 5, 'Too many login attempts. Please try again after 15 minutes.'), validate(loginSchema), ctrl.login);
+router.post('/login',                  rateLimit(15 * 60 * 1000, 100, 'Too many login attempts. Please try again after 15 minutes.'), validate(loginSchema), ctrl.login);
 
 router.post('/refresh',                ctrl.refreshToken);
 router.get('/me',                      verifyToken, ctrl.getMe);
@@ -33,7 +33,7 @@ router.get('/profile',                 verifyToken, ctrl.getProfile);
 router.patch('/profile',               verifyToken, ctrl.updateProfile);
 
 // Faculty self-registration via OTP
-router.post('/register/send-otp',      rateLimit(10 * 60 * 1000, 3, 'Too many OTP requests. Please try again after 10 minutes.'), validate(sendOtpSchema), ctrl.sendOtp);
+router.post('/register/send-otp',      rateLimit(10 * 60 * 1000, 100, 'Too many OTP requests. Please try again after 10 minutes.'), validate(sendOtpSchema), ctrl.sendOtp);
 router.post('/register/verify-otp',    validate(verifyOtpSchema), ctrl.verifyOtp);
 router.post('/register/complete',      validate(completeRegSchema), ctrl.completeReg);
 

@@ -83,12 +83,11 @@ export default function PrintClaim() {
     }
 
     const useClassified = !isFaculty && it.sric_cgst !== null && it.sric_cgst !== undefined;
+    const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
     const cgst = useClassified ? parseFloat(it.sric_cgst) : parseFloat(it.cgst_amount || 0);
     const sgst = useClassified ? parseFloat(it.sric_sgst) : parseFloat(it.sgst_amount || 0);
     const igst = useClassified ? parseFloat(it.sric_igst) : parseFloat(it.igst_amount || 0);
     const other = useClassified ? parseFloat(it.sric_other_charges) : parseFloat(it.other_charges || 0);
-
-    const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
     const prodTotal = base + cgst + sgst + igst + other;
 
     invoiceGroups[key].cgst_amount += cgst;
@@ -117,11 +116,11 @@ export default function PrintClaim() {
     items.forEach(it => {
       const bh = it.budget_head || 'Unclassified';
       const useClassified = it.sric_cgst !== null && it.sric_cgst !== undefined;
+      const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
       const cgst = useClassified ? parseFloat(it.sric_cgst) : parseFloat(it.cgst_amount || 0);
       const sgst = useClassified ? parseFloat(it.sric_sgst) : parseFloat(it.sgst_amount || 0);
       const igst = useClassified ? parseFloat(it.sric_igst) : parseFloat(it.igst_amount || 0);
       const other = useClassified ? parseFloat(it.sric_other_charges) : parseFloat(it.other_charges || 0);
-      const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
 
       budgetSummary[bh] = (budgetSummary[bh] || 0) + (base + cgst + sgst + igst + other);
     });
@@ -173,6 +172,10 @@ export default function PrintClaim() {
         <table className="print-meta-table">
           <tbody>
             <tr>
+              <td className="meta-label">Project Number:</td>
+              <td className="meta-val" colSpan="3"><strong style={{ fontSize: '13px' }}>{claim.project_title ? `${claim.project_title} / ${claim.project_agency} / ` : ''}{claim.project_no}</strong></td>
+            </tr>
+            <tr>
               <td className="meta-label">Claim Number:</td>
               <td className="meta-val"><strong style={{ fontSize: '13px' }}>{claim.claim_no || 'Draft'}</strong></td>
               <td className="meta-label">Date of Submission:</td>
@@ -186,9 +189,7 @@ export default function PrintClaim() {
             </tr>
             <tr>
               <td className="meta-label">Department:</td>
-              <td className="meta-val">{claim.department || '—'}</td>
-              <td className="meta-label">Project Number:</td>
-              <td className="meta-val"><strong style={{ fontSize: '13px' }}>{claim.project_no}</strong></td>
+              <td className="meta-val" colSpan="3">{claim.department || '—'}</td>
             </tr>
             <tr>
               <td className="meta-label">Purpose of Expenditure:</td>
@@ -313,72 +314,21 @@ export default function PrintClaim() {
           </>
         )}
 
-        <h4 className="section-subtitle">{isFaculty ? '2. Certification & Submission' : '3. Certifications & Approvals'}</h4>
-
-        {isFaculty ? (
-          <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '14px 0 20px 0' }}>
-            <div className="signature-card" style={{ width: '40%', border: '1px solid #a0aec0', borderRadius: '6px', padding: '10px', background: '#fff' }}>
-              <div className="sig-header" style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', color: '#2d3748', textTransform: 'uppercase' }}>Submitted By</div>
-              <div className="sig-body" style={{ fontSize: '11px' }}>
-                <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{claim.faculty_name}</p>
-                <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>Principal Investigator (PI)</p>
-                <div className="sig-line" style={{ borderBottom: '1px solid #718096', marginTop: '15px' }} />
-                <p style={{ fontSize: '11px', margin: '6px 0 0 0' }}>Signature of PI / Date</p>
+        {isFaculty && (
+          <>
+            <h4 className="section-subtitle">2. Certification & Submission</h4>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '14px 0 20px 0' }}>
+              <div className="signature-card" style={{ width: '40%', border: '1px solid #a0aec0', borderRadius: '6px', padding: '10px', background: '#fff' }}>
+                <div className="sig-header" style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', color: '#2d3748', textTransform: 'uppercase' }}>Submitted By</div>
+                <div className="sig-body" style={{ fontSize: '11px' }}>
+                  <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{claim.faculty_name}</p>
+                  <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>Principal Investigator (PI)</p>
+                  <div className="sig-line" style={{ borderBottom: '1px solid #718096', marginTop: '15px' }} />
+                  <p style={{ fontSize: '11px', margin: '6px 0 0 0' }}>Signature of PI / Date</p>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="print-signatures-grid">
-            <div className="signature-card">
-              <div className="sig-header">Submitted By</div>
-              <div className="sig-body">
-                <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{claim.faculty_name}</p>
-                <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>Principal Investigator (PI)</p>
-                <div className="sig-line" />
-                <p style={{ fontSize: '11px', margin: '6px 0 0 0' }}>Signature of PI / Date</p>
-              </div>
-            </div>
-
-            <div className="signature-card">
-              <div className="sig-header">Verified By (SRIC Cell)</div>
-              <div className="sig-body">
-                {sricApproval ? (
-                  <>
-                    <p style={{ fontWeight: 'bold', color: '#2f855a', margin: '0 0 2px 0' }}>✓ RECOMMENDED & FORWARDED</p>
-                    <p style={{ fontSize: '11px', margin: '0 0 6px 0' }}>By: {sricApproval.actor_name}</p>
-                    <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 6px 0' }}>Remarks: "{sricApproval.remarks || 'No remarks.'}"</p>
-                    <p style={{ fontSize: '10px', color: '#718096' }}>Date: {new Date(sricApproval.acted_at).toLocaleDateString('en-IN')}</p>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ height: '36px' }} />
-                    <div className="sig-line" />
-                    <p style={{ fontSize: '11px', margin: '6px 0 0 0' }}>Signature / Remarks / Date</p>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="signature-card">
-              <div className="sig-header">Approved By (Dean SR,IC&CE)</div>
-              <div className="sig-body">
-                {deanApproval ? (
-                  <>
-                    <p style={{ fontWeight: 'bold', color: '#2f855a', margin: '0 0 2px 0' }}>✓ APPROVED</p>
-                    <p style={{ fontSize: '11px', margin: '0 0 6px 0' }}>By: {deanApproval.actor_name}</p>
-                    <p style={{ fontSize: '11px', fontStyle: 'italic', margin: '0 0 6px 0' }}>Remarks: "{deanApproval.remarks || 'Approved.'}"</p>
-                    <p style={{ fontSize: '10px', color: '#718096' }}>Date: {new Date(deanApproval.acted_at).toLocaleDateString('en-IN')}</p>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ height: '36px' }} />
-                    <div className="sig-line" />
-                    <p style={{ fontSize: '11px', margin: '6px 0 0 0' }}>Signature / Remarks / Date</p>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+          </>
         )}
 
         <style>{`

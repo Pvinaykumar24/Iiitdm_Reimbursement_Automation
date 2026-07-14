@@ -20,6 +20,7 @@ import SricPendingClaims from './pages/sric/PendingClaims';
 import SricAllClaims from './pages/sric/AllClaims';
 import SricClaimReview from './pages/sric/ClaimReview';
 import FacultyProfileView from './pages/sric/FacultyProfile';
+import ProjectsManagement from './pages/sric/ProjectsManagement';
 
 import DeanDashboard from './pages/dean/Dashboard';
 import DeanPendingClaims from './pages/dean/PendingClaims';
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="claims/:id" element={<SricClaimReview />} />
           <Route path="faculty/:id" element={<FacultyProfileView />} />
           <Route path="budget" element={<BudgetClassification />} />
+          <Route path="projects" element={<ProjectsManagement />} />
         </Route>
 
         <Route path="/dean" element={

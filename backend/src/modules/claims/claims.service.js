@@ -41,14 +41,14 @@ const addItem = async (claimId, facultyId, item) => {
   const { rows } = await db.query(
     `INSERT INTO claim_items
      (claim_id, vendor_name, bill_no, bill_date, description,
-      quantity, unit_price, cgst_percent, sgst_percent, igst_percent,
+      quantity, unit_price, cgst_amount, sgst_amount, igst_amount,
       total_amount, gstin_vendor, quantity_unit, other_charges, item_order)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,
        (SELECT COALESCE(MAX(item_order),0)+1 FROM claim_items WHERE claim_id=$1))
      RETURNING *`,
     [claimId, item.vendor_name, item.bill_no, item.bill_date, item.description,
       item.quantity, item.unit_price,
-      item.cgst_percent || 0, item.sgst_percent || 0, item.igst_percent || 0,
+      item.cgst_amount || 0, item.sgst_amount || 0, item.igst_amount || 0,
       item.total_amount, item.gstin_vendor || null,
       item.quantity_unit || 'pcs', item.other_charges || 0]
   );
@@ -196,7 +196,20 @@ const getClaimById = async (claimId, userId, userRole) => {
     [claimId]
   );
 
-  return { ...claim, items: items.rows, approvals: approvals.rows, audit_logs: logs.rows };
+  const projectRes = await db.query(
+    'SELECT title, funding_agency FROM projects WHERE project_no = $1',
+    [claim.project_no]
+  );
+  const project = projectRes.rows[0] || null;
+
+  return {
+    ...claim,
+    project_title: project?.title || null,
+    project_agency: project?.funding_agency || null,
+    items: items.rows,
+    approvals: approvals.rows,
+    audit_logs: logs.rows
+  };
 };
 
 const getPendingForDean = async () => {
