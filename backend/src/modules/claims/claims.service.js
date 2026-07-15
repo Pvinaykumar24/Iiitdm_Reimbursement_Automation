@@ -31,12 +31,7 @@ const addItem = async (claimId, facultyId, item) => {
   );
   if (!claim.rows.length) throw Object.assign(new Error('Claim not found or not in editable status'), { status: 404 });
 
-  if (parseFloat(item.total_amount) > 25000)
-    throw Object.assign(new Error('Single bill cannot exceed ₹25,000 as per institute policy'), { status: 400 });
 
-  const billAge = (Date.now() - new Date(item.bill_date)) / (1000 * 60 * 60 * 24);
-  if (billAge > 60)
-    throw Object.assign(new Error('Bills older than 60 days are not accepted'), { status: 400 });
 
   const { rows } = await db.query(
     `INSERT INTO claim_items
@@ -109,20 +104,7 @@ const submitClaim = async (claimId, facultyId) => {
   if (itemsRes.rows.length === 0)
     throw Object.assign(new Error('Cannot submit a claim with no bill items'), { status: 400 });
 
-  const today = Date.now();
-  for (const item of itemsRes.rows) {
-    const billAge = (today - new Date(item.bill_date)) / (1000 * 60 * 60 * 24);
-    if (billAge > 60)
-      throw Object.assign(
-        new Error(`Bill #${item.bill_no} (${item.vendor_name}) is older than 60 days and cannot be reimbursed`),
-        { status: 400 }
-      );
-    if (parseFloat(item.total_amount) > 25000)
-      throw Object.assign(
-        new Error(`Bill #${item.bill_no} (${item.vendor_name}) exceeds the ₹25,000 per-bill limit`),
-        { status: 400 }
-      );
-  }
+
 
   const isResubmit = ['SRIC_REJECTED', 'DEAN_REJECTED'].includes(claim.status);
   const nextVer = isResubmit ? (claim.version || 1) + 1 : (claim.version || 1);

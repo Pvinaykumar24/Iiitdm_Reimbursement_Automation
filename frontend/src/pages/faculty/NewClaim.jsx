@@ -393,10 +393,7 @@ export default function NewClaim() {
       {/* ── Step 2: Bill items ── */}
       {step === 2 && (
         <form onSubmit={handleStep2}>
-          <div className="alert alert-warning">
-            <i className="ti ti-alert-triangle" />
-            Bills older than 60 days or exceeding ₹25,000 per item will be rejected.
-          </div>
+          <div style={{ height: 4 }} />
 
           {/* Project & budget head summary bar */}
           <div style={{
