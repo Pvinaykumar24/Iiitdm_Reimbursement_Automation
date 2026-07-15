@@ -107,6 +107,7 @@ export const claimsApi = {
 export const approvalsApi = {
   sricDecide: (id, action, remarks, itemBudgetHeads) => api.post(`/approvals/sric/${id}`, { action, remarks, itemBudgetHeads }),
   deanDecide: (id, action, remarks) => api.post(`/approvals/dean/${id}`, { action, remarks }),
+  updateSricSegregation: (id, itemBudgetHeads) => api.patch(`/approvals/sric/update-segregation/${id}`, { itemBudgetHeads }),
 };
 
 export const projectsApi = {

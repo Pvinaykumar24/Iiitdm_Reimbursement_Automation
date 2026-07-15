@@ -5,8 +5,9 @@ import { useAuthStore } from '../../store/authStore';
 
 export default function PrintClaim() {
   const { id } = useParams();
-  const { user } = useAuthStore();
-  const isFaculty = user?.role === 'FACULTY';
+  const queryParams = new URLSearchParams(window.location.search);
+  const roleParam = queryParams.get('role');
+  const isFaculty = roleParam ? roleParam === 'faculty' : (user?.role === 'FACULTY');
   const [claim, setClaim] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

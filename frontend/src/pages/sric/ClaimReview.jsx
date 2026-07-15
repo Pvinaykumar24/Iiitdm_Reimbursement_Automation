@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { claimsApi, approvalsApi } from '../../api';
+import { useToastStore } from '../../store/toastStore';
 
 export default function SricClaimReview() {
   const { id } = useParams();
@@ -16,13 +17,14 @@ export default function SricClaimReview() {
     claimsApi.getById(id).then(r => {
       setClaim(r.data);
       const initialHeads = {};
+      const isPending = r.data.status === 'SRIC_PENDING';
       r.data.items?.forEach(it => {
         initialHeads[it.id] = {
           budget_head: it.budget_head || 'Consumable',
-          sric_cgst: 0,
-          sric_sgst: 0,
-          sric_igst: 0,
-          sric_other_charges: 0,
+          sric_cgst: isPending ? 0 : (it.sric_cgst !== null && it.sric_cgst !== undefined ? parseFloat(it.sric_cgst) : 0),
+          sric_sgst: isPending ? 0 : (it.sric_sgst !== null && it.sric_sgst !== undefined ? parseFloat(it.sric_sgst) : 0),
+          sric_igst: isPending ? 0 : (it.sric_igst !== null && it.sric_igst !== undefined ? parseFloat(it.sric_igst) : 0),
+          sric_other_charges: isPending ? 0 : (it.sric_other_charges !== null && it.sric_other_charges !== undefined ? parseFloat(it.sric_other_charges) : 0),
         };
       });
       setItemBudgetHeads(initialHeads);
@@ -93,6 +95,28 @@ export default function SricClaimReview() {
   if (!claim) return <div className="alert alert-error">Claim not found.</div>;
 
   const isPending = claim.status === 'SRIC_PENDING';
+  const isEditable = claim.status === 'SRIC_PENDING' || claim.status === 'DEAN_PENDING';
+
+  const handleUpdateSegregation = async () => {
+    const validationErrors = getValidationErrors();
+    if (validationErrors.length > 0) {
+      setError(validationErrors[0]);
+      return;
+    }
+
+    setError('');
+    setSubmitting(true);
+    try {
+      await approvalsApi.updateSricSegregation(id, itemBudgetHeads);
+      const r = await claimsApi.getById(id);
+      setClaim(r.data);
+      useToastStore.getState().addToast('Segregation details updated successfully.', 'success');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update segregation.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const STATUS_BADGE = {
     DRAFT: { cls: 'badge-draft', label: 'Draft' },
@@ -136,7 +160,7 @@ export default function SricClaimReview() {
         {claim.status !== 'DRAFT' && claim.status !== 'SRIC_PENDING' && (
           <button 
             className="btn btn-ghost btn-sm" 
-            onClick={() => window.open(`/claims/${claim.id}/print`, '_blank')} 
+            onClick={() => window.open(`/claims/${claim.id}/print?role=sric`, '_blank')} 
             style={{ marginLeft: 'auto', background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}
           >
             <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download
@@ -145,7 +169,7 @@ export default function SricClaimReview() {
       </div>
 
       {error && <div className="alert alert-error"><i className="ti ti-alert-circle" />{error}</div>}
-      {isPending && validationErrors.map((errText, errIdx) => (
+      {isEditable && validationErrors.map((errText, errIdx) => (
         <div key={errIdx} className="alert alert-error" style={{ marginBottom: 12 }}>
           <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />
           {errText}
@@ -177,7 +201,7 @@ export default function SricClaimReview() {
         totalAmount={claim.total_amount}
         itemBudgetHeads={itemBudgetHeads}
         setItemBudgetHeads={setItemBudgetHeads}
-        isPending={isPending}
+        isPending={isEditable}
       />
 
       {/* Segregation Summary */}
@@ -233,38 +257,64 @@ export default function SricClaimReview() {
           </div>
         </div>
       ) : (
-        <div className="card">
-          <div className="card-header">SRIC Verification Info</div>
-          <div className="card-body">
-            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 13 }}>
-              <div>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Status</div>
-                <span className={`badge ${claim.status === 'SRIC_REJECTED' ? 'badge-rejected' : 'badge-approved'}`}>
-                  <i className={`ti ${claim.status === 'SRIC_REJECTED' ? 'ti-circle-x' : 'ti-circle-check'}`} style={{ marginRight: 4, fontSize: 11 }} />
-                  {claim.status === 'SRIC_REJECTED' ? 'Rejected' : 'Verified'}
-                </span>
+        <>
+          <div className="card">
+            <div className="card-header">SRIC Verification Info</div>
+            <div className="card-body">
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 13 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Status</div>
+                  <span className={`badge ${claim.status === 'SRIC_REJECTED' ? 'badge-rejected' : 'badge-approved'}`}>
+                    <i className={`ti ${claim.status === 'SRIC_REJECTED' ? 'ti-circle-x' : 'ti-circle-check'}`} style={{ marginRight: 4, fontSize: 11 }} />
+                    {claim.status === 'SRIC_REJECTED' ? 'Rejected' : 'Verified'}
+                  </span>
+                </div>
+                {sricApproval && (
+                  <>
+                    <div>
+                      <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Processed by</div>
+                      <div style={{ fontWeight: 500 }}>{sricApproval.actor_name}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Date</div>
+                      <div>{new Date(sricApproval.acted_at).toLocaleString('en-IN')}</div>
+                    </div>
+                  </>
+                )}
               </div>
-              {sricApproval && (
-                <>
-                  <div>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Processed by</div>
-                    <div style={{ fontWeight: 500 }}>{sricApproval.actor_name}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Date</div>
-                    <div>{new Date(sricApproval.acted_at).toLocaleString('en-IN')}</div>
-                  </div>
-                </>
+              {sricApproval?.remarks && (
+                <div style={{ marginTop: 14, padding: '10px 14px', background: '#fafaf9', borderRadius: 7, border: '1px solid #e5e5e3', fontSize: 13 }}>
+                  <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Verification Remarks</div>
+                  {sricApproval.remarks}
+                </div>
               )}
             </div>
-            {sricApproval?.remarks && (
-              <div style={{ marginTop: 14, padding: '10px 14px', background: '#fafaf9', borderRadius: 7, border: '1px solid #e5e5e3', fontSize: 13 }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>Verification Remarks</div>
-                {sricApproval.remarks}
-              </div>
-            )}
           </div>
-        </div>
+
+          {claim.status === 'DEAN_PENDING' && (
+            <div className="card" style={{ marginTop: 16 }}>
+              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Update Segregation Details</span>
+                <span style={{ fontSize: 11, background: '#FEF3C7', color: '#D97706', padding: '3px 8px', borderRadius: 4, fontWeight: 500 }}>Editable before Dean Decision</span>
+              </div>
+              <div className="card-body">
+                <p style={{ fontSize: 13, color: '#666', margin: '0 0 16px' }}>
+                  This claim is currently pending Dean approval. You can adjust the budget classification and GST allocations below and save the changes.
+                </p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleUpdateSegregation} 
+                    disabled={submitting || validationErrors.length > 0}
+                  >
+                    <i className="ti ti-device-floppy" style={{ marginRight: 6 }} />
+                    {submitting ? 'Saving Changes...' : 'Save Segregation Changes'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </>
   );

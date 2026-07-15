@@ -89,7 +89,7 @@ export default function ClaimDetail() {
         <h1 className="page-title" style={{ margin: 0 }}>{claim.claim_no || 'Draft Claim'}</h1>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {claim.status !== 'DRAFT' && (
-            <button className="btn btn-ghost btn-sm" onClick={() => window.open(`/claims/${claim.id}/print`, '_blank')} style={{ background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => window.open(`/claims/${claim.id}/print?role=faculty`, '_blank')} style={{ background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}>
               <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download
             </button>
           )}

@@ -5,5 +5,6 @@ const ctrl = require('./approvals.controller');
 router.use(verifyToken);
 router.post('/dean/:id', requireRole('DEAN'), ctrl.deanDecision);
 router.post('/sric/:id', requireRole('SRIC'), ctrl.sricDecision);
+router.patch('/sric/update-segregation/:id', requireRole('SRIC'), ctrl.updateSricSegregation);
 
 module.exports = router;

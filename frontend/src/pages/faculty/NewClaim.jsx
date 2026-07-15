@@ -298,7 +298,7 @@ export default function NewClaim() {
           <button
             className="btn btn-primary"
             style={{ padding: '8px 16px' }}
-            onClick={() => window.open(`/claims/${claimId}/print`, '_blank')}
+            onClick={() => window.open(`/claims/${claimId}/print?role=faculty`, '_blank')}
           >
             <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download Form
           </button>

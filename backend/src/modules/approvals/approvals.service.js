@@ -278,4 +278,114 @@ const deanDecision = async (claimId, deanId, action, remarks) => {
   return { message: `Claim ${action === 'APPROVED' ? 'approved and forwarded' : 'rejected'} successfully` };
 };
 
-module.exports = { sricDecision, deanDecision };
+const updateSricSegregation = async (claimId, sricUserId, itemBudgetHeads) => {
+  if (!itemBudgetHeads || typeof itemBudgetHeads !== 'object')
+    throw Object.assign(new Error('Budget head segregation is required'), { status: 400 });
+
+  const { rows } = await db.query(
+    `SELECT * FROM claims WHERE id=$1`,
+    [claimId]
+  );
+  if (!rows.length) throw Object.assign(new Error('Claim not found'), { status: 404 });
+  const claim = rows[0];
+
+  if (claim.status !== 'DEAN_PENDING') {
+    throw Object.assign(new Error('Claim is not pending Dean approval. Segregation can only be updated before Dean decision.'), { status: 400 });
+  }
+
+  const client = await db.pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Fetch all items belonging to the claim (need bill_no + all faculty GST columns for invoice-level grouping)
+    const { rows: itemRows } = await client.query(
+      `SELECT id, bill_no, cgst_amount, sgst_amount, igst_amount, other_charges FROM claim_items WHERE claim_id = $1`,
+      [claimId]
+    );
+
+    // Group items by invoice (bill_no) and validate at invoice level
+    const invoiceGroups = {};
+    for (const it of itemRows) {
+      const key = it.bill_no || 'unknown';
+      if (!invoiceGroups[key]) {
+        invoiceGroups[key] = { bill_no: it.bill_no, facultyCGST: 0, facultySGST: 0, facultyIGST: 0, facultyOther: 0, sricCGST: 0, sricSGST: 0, sricIGST: 0, sricOther: 0 };
+      }
+      invoiceGroups[key].facultyCGST += parseFloat(it.cgst_amount || 0);
+      invoiceGroups[key].facultySGST += parseFloat(it.sgst_amount || 0);
+      invoiceGroups[key].facultyIGST += parseFloat(it.igst_amount || 0);
+      invoiceGroups[key].facultyOther += parseFloat(it.other_charges || 0);
+
+      const val = itemBudgetHeads[it.id];
+      if (val && typeof val === 'object') {
+        invoiceGroups[key].sricCGST += parseFloat(val.sric_cgst || 0);
+        invoiceGroups[key].sricSGST += parseFloat(val.sric_sgst || 0);
+        invoiceGroups[key].sricIGST += parseFloat(val.sric_igst || 0);
+        invoiceGroups[key].sricOther += parseFloat(val.sric_other_charges || 0);
+      }
+    }
+
+    for (const inv of Object.values(invoiceGroups)) {
+      const facultyTotal = inv.facultyCGST + inv.facultySGST + inv.facultyIGST;
+      const sricTotal = inv.sricCGST + inv.sricSGST + inv.sricIGST;
+      if (Math.abs(sricTotal - facultyTotal) > 0.10) {
+        throw Object.assign(
+          new Error(`Invoice "${inv.bill_no}": Segregated GST total (₹${sricTotal.toFixed(2)}) does not match faculty-entered GST (₹${facultyTotal.toFixed(2)}). Please adjust the tax allocations.`),
+          { status: 400 }
+        );
+      }
+      if (Math.abs(inv.sricOther - inv.facultyOther) > 0.10) {
+        throw Object.assign(
+          new Error(`Invoice "${inv.bill_no}": Segregated Other Charges (₹${inv.sricOther.toFixed(2)}) does not match faculty-entered Other Charges (₹${inv.facultyOther.toFixed(2)}). Please adjust the other charge allocations.`),
+          { status: 400 }
+        );
+      }
+    }
+
+    // Now save each segregation update
+    for (const [itemId, val] of Object.entries(itemBudgetHeads)) {
+      let budgetHead = 'Consumable';
+      let sricCgst = 0;
+      let sricSgst = 0;
+      let sricIgst = 0;
+      let sricOther = 0;
+
+      if (val && typeof val === 'object') {
+        budgetHead = val.budget_head || 'Consumable';
+        sricCgst = parseFloat(val.sric_cgst || 0);
+        sricSgst = parseFloat(val.sric_sgst || 0);
+        sricIgst = parseFloat(val.sric_igst || 0);
+        sricOther = parseFloat(val.sric_other_charges || 0);
+      } else {
+        budgetHead = val || 'Consumable';
+      }
+
+      if (!VALID_BUDGET_HEADS.includes(budgetHead)) {
+        throw Object.assign(new Error(`Invalid budget head: ${budgetHead}`), { status: 400 });
+      }
+
+      await client.query(
+        `UPDATE claim_items 
+         SET budget_head = $1, sric_cgst = $2, sric_sgst = $3, sric_igst = $4, sric_other_charges = $5
+         WHERE id = $6 AND claim_id = $7`,
+        [budgetHead, sricCgst, sricSgst, sricIgst, sricOther, itemId, claimId]
+      );
+    }
+
+    await client.query(
+      `INSERT INTO audit_logs (claim_id, user_id, action, metadata)
+       VALUES ($1,$2,$3,$4)`,
+      [claimId, sricUserId, 'SRIC_SEGREGATION_UPDATED',
+        JSON.stringify({ claim_no: claim.claim_no })]
+    );
+
+    await client.query('COMMIT');
+    return { message: 'Segregation updated successfully' };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = { sricDecision, deanDecision, updateSricSegregation };

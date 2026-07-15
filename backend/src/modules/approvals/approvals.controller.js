@@ -16,4 +16,12 @@ const deanDecision = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { sricDecision, deanDecision };
+const updateSricSegregation = async (req, res, next) => {
+  try {
+    const { itemBudgetHeads } = req.body;
+    const result = await service.updateSricSegregation(req.params.id, req.user.id, itemBudgetHeads);
+    res.json(result);
+  } catch (err) { next(err); }
+};
+
+module.exports = { sricDecision, deanDecision, updateSricSegregation };

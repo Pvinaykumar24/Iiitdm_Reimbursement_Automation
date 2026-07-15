@@ -228,7 +228,7 @@ export default function SricAllClaims() {
                             title="Print Claim"
                             onClick={e => {
                               e.stopPropagation();
-                              window.open(`/claims/${c.id}/print`, '_blank');
+                               window.open(`/claims/${c.id}/print?role=sric`, '_blank');
                             }}
                           >
                             <i className="ti ti-printer" style={{ fontSize: 14 }} />

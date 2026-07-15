@@ -53,7 +53,7 @@ export default function MyClaims() {
                           <button
                             className="btn btn-ghost btn-sm"
                             style={{ padding: '4px 8px', color: '#534AB7', background: 'transparent', border: 'none' }}
-                            onClick={() => window.open(`/claims/${c.id}/print`, '_blank')}
+                            onClick={() => window.open(`/claims/${c.id}/print?role=faculty`, '_blank')}
                             title="Print / Download Reimbursement Form"
                           >
                             <i className="ti ti-printer" style={{ fontSize: '15px' }} />
