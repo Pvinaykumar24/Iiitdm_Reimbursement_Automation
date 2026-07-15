@@ -289,8 +289,8 @@ const updateSricSegregation = async (claimId, sricUserId, itemBudgetHeads) => {
   if (!rows.length) throw Object.assign(new Error('Claim not found'), { status: 404 });
   const claim = rows[0];
 
-  if (claim.status !== 'DEAN_PENDING') {
-    throw Object.assign(new Error('Claim is not pending Dean approval. Segregation can only be updated before Dean decision.'), { status: 400 });
+  if (claim.status !== 'SRIC_PENDING' && claim.status !== 'DEAN_PENDING') {
+    throw Object.assign(new Error('Claim segregation can only be modified for pending or dean-review claims.'), { status: 400 });
   }
 
   const client = await db.pool.connect();

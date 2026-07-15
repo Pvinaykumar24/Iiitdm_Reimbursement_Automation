@@ -157,24 +157,40 @@ export default function SricClaimReview() {
         <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}><i className="ti ti-arrow-left" /></button>
         <h1 className="page-title" style={{ margin: 0 }}>Review — {claim.claim_no}</h1>
         <span className={`badge ${badge.cls}`} style={{ marginLeft: 4 }}>{badge.label}</span>
-        {claim.status !== 'DRAFT' && claim.status !== 'SRIC_PENDING' && (
+      {claim.status !== 'DRAFT' && claim.status !== 'SRIC_PENDING' && (
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          {isEditable && (
+            <button 
+              className="btn btn-ghost btn-sm"
+              onClick={() => navigate(`/sric/claims/${claim.id}/edit-segregation`)}
+              style={{ background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px', color: '#534AB7', fontWeight: 500 }}
+            >
+              <i className="ti ti-edit" style={{ marginRight: 6 }} />Edit Segregation
+            </button>
+          )}
           <button 
             className="btn btn-ghost btn-sm" 
             onClick={() => window.open(`/claims/${claim.id}/print?role=sric`, '_blank')} 
-            style={{ marginLeft: 'auto', background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}
+            style={{ background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px' }}
           >
             <i className="ti ti-printer" style={{ marginRight: 6 }} />Print / Download
           </button>
-        )}
+        </div>
+      )}
+      {claim.status === 'SRIC_PENDING' && (
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <button 
+            className="btn btn-ghost btn-sm"
+            onClick={() => navigate(`/sric/claims/${claim.id}/edit-segregation`)}
+            style={{ background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px', color: '#534AB7', fontWeight: 500 }}
+          >
+            <i className="ti ti-edit" style={{ marginRight: 6 }} />Edit Segregation
+          </button>
+        </div>
+      )}
       </div>
 
       {error && <div className="alert alert-error"><i className="ti ti-alert-circle" />{error}</div>}
-      {isEditable && validationErrors.map((errText, errIdx) => (
-        <div key={errIdx} className="alert alert-error" style={{ marginBottom: 12 }}>
-          <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />
-          {errText}
-        </div>
-      ))}
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header">Claim details</div>
@@ -201,7 +217,7 @@ export default function SricClaimReview() {
         totalAmount={claim.total_amount}
         itemBudgetHeads={itemBudgetHeads}
         setItemBudgetHeads={setItemBudgetHeads}
-        isPending={isEditable}
+        isPending={false}
       />
 
       {/* Segregation Summary */}
@@ -246,6 +262,12 @@ export default function SricClaimReview() {
               <textarea rows={3} value={remarks} onChange={e => setRemarks(e.target.value)}
                 placeholder="Add remarks for verification or reason for rejection..." />
             </div>
+            {validationErrors.length > 0 && (
+              <div style={{ color: '#A32D2D', fontSize: 13, marginBottom: 12, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <i className="ti ti-alert-circle" />
+                <span>Segregation mismatch. Please click "Edit Segregation" in the header to classify items first.</span>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
               <button className="btn btn-danger" onClick={() => decide('REJECTED')} disabled={submitting}>
                 <i className="ti ti-x" style={{ marginRight: 6 }} />{submitting ? 'Processing...' : 'Reject & Return'}
@@ -291,29 +313,6 @@ export default function SricClaimReview() {
             </div>
           </div>
 
-          {claim.status === 'DEAN_PENDING' && (
-            <div className="card" style={{ marginTop: 16 }}>
-              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Update Segregation Details</span>
-                <span style={{ fontSize: 11, background: '#FEF3C7', color: '#D97706', padding: '3px 8px', borderRadius: 4, fontWeight: 500 }}>Editable before Dean Decision</span>
-              </div>
-              <div className="card-body">
-                <p style={{ fontSize: 13, color: '#666', margin: '0 0 16px' }}>
-                  This claim is currently pending Dean approval. You can adjust the budget classification and GST allocations below and save the changes.
-                </p>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={handleUpdateSegregation} 
-                    disabled={submitting || validationErrors.length > 0}
-                  >
-                    <i className="ti ti-device-floppy" style={{ marginRight: 6 }} />
-                    {submitting ? 'Saving Changes...' : 'Save Segregation Changes'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
     </>
