@@ -159,7 +159,7 @@ export default function SricClaimReview() {
         <span className={`badge ${badge.cls}`} style={{ marginLeft: 4 }}>{badge.label}</span>
       {claim.status !== 'DRAFT' && claim.status !== 'SRIC_PENDING' && (
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          {isEditable && (
+          {claim.status === 'DEAN_PENDING' && (
             <button 
               className="btn btn-ghost btn-sm"
               onClick={() => navigate(`/sric/claims/${claim.id}/edit-segregation`)}
@@ -177,20 +177,15 @@ export default function SricClaimReview() {
           </button>
         </div>
       )}
-      {claim.status === 'SRIC_PENDING' && (
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <button 
-            className="btn btn-ghost btn-sm"
-            onClick={() => navigate(`/sric/claims/${claim.id}/edit-segregation`)}
-            style={{ background: '#fff', border: '1px solid #d4d4d0', padding: '6px 12px', color: '#534AB7', fontWeight: 500 }}
-          >
-            <i className="ti ti-edit" style={{ marginRight: 6 }} />Edit Segregation
-          </button>
-        </div>
-      )}
       </div>
 
       {error && <div className="alert alert-error"><i className="ti ti-alert-circle" />{error}</div>}
+      {isPending && validationErrors.map((errText, errIdx) => (
+        <div key={errIdx} className="alert alert-error" style={{ marginBottom: 12 }}>
+          <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />
+          {errText}
+        </div>
+      ))}
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header">Claim details</div>
@@ -217,7 +212,7 @@ export default function SricClaimReview() {
         totalAmount={claim.total_amount}
         itemBudgetHeads={itemBudgetHeads}
         setItemBudgetHeads={setItemBudgetHeads}
-        isPending={false}
+        isPending={isPending}
       />
 
       {/* Segregation Summary */}
