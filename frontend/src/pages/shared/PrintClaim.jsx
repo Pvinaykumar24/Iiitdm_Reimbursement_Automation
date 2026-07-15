@@ -312,6 +312,21 @@ export default function PrintClaim() {
                 </tr>
               </tbody>
             </table>
+
+            <h4 className="section-subtitle" style={{ marginTop: '24px' }}>3. SRIC Cell Verification</h4>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '14px', marginBottom: '20px' }}>
+              <div className="signature-card" style={{ width: '50%', border: '1px solid #a0aec0', borderRadius: '6px', padding: '16px 20px', background: '#fff' }}>
+                <div className="sig-header" style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '0.04em' }}>SRIC Cell Verification & Approval</div>
+                <div className="sig-body" style={{ fontSize: '11px' }}>
+                  <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{sricApproval ? sricApproval.actor_name : 'Verified By: SRIC Cell'}</p>
+                  <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>
+                    {sricApproval?.acted_at ? `Date: ${new Date(sricApproval.acted_at).toLocaleDateString('en-IN')}` : 'SRIC Recommendation'}
+                  </p>
+                  <div className="sig-line" style={{ borderBottom: '1px solid #718096', marginTop: '80px' }} />
+                  <p style={{ fontSize: '11px', fontWeight: '600', margin: '8px 0 0 0' }}>Signature & Stamp of SRIC Cell</p>
+                </div>
+              </div>
+            </div>
           </>
         )}
 
