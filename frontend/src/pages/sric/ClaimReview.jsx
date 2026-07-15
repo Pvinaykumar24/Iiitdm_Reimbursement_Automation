@@ -705,15 +705,6 @@ function ItemDetailModal({ item, onClose }) {
                 <Field label="Quantity" value={`${item.quantity} ${item.quantity_unit || 'pcs'}`} />
                 <Field label="Unit Price" value={`₹${parseFloat(item.unit_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
                 <Field label="Base Amount" value={`₹${base.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-                <div />
-                <Field label={`CGST @ ${item.cgst_percent}%`} value={`₹${cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-                <Field label={`SGST @ ${item.sgst_percent}%`} value={`₹${sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-                {parseFloat(item.igst_percent) > 0 && (
-                  <Field label={`IGST @ ${item.igst_percent}%`} value={`₹${igstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-                )}
-                {otherCharges > 0 && (
-                  <Field label="Other Charges" value={`₹${otherCharges.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />
-                )}
               </div>
             </div>
 
