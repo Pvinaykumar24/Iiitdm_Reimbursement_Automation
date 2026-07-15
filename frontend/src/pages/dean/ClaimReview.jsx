@@ -53,7 +53,14 @@ export default function DeanClaimReview() {
   if (claim && claim.items) {
     claim.items.forEach(it => {
       const bh = it.budget_head || 'Consumable';
-      budgetHeadSummaries[bh] = (budgetHeadSummaries[bh] || 0) + parseFloat(it.total_amount || 0);
+      const useClassified = it.sric_cgst !== null && it.sric_cgst !== undefined;
+      const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
+      const cgst = useClassified ? parseFloat(it.sric_cgst) : parseFloat(it.cgst_amount || 0);
+      const sgst = useClassified ? parseFloat(it.sric_sgst) : parseFloat(it.sgst_amount || 0);
+      const igst = useClassified ? parseFloat(it.sric_igst) : parseFloat(it.igst_amount || 0);
+      const other = useClassified ? parseFloat(it.sric_other_charges) : parseFloat(it.other_charges || 0);
+      const itemTotal = base + cgst + sgst + igst + other;
+      budgetHeadSummaries[bh] = (budgetHeadSummaries[bh] || 0) + itemTotal;
     });
   }
 
@@ -218,6 +225,13 @@ const groupItemsByInvoice = (items = []) => {
   const groups = {};
   items.forEach(it => {
     const key = it.bill_no || 'unknown';
+    const useClassified = it.sric_cgst !== null && it.sric_cgst !== undefined;
+    const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
+    const cgst = useClassified ? parseFloat(it.sric_cgst) : parseFloat(it.cgst_amount || 0);
+    const sgst = useClassified ? parseFloat(it.sric_sgst) : parseFloat(it.sgst_amount || 0);
+    const igst = useClassified ? parseFloat(it.sric_igst) : parseFloat(it.igst_amount || 0);
+    const other = useClassified ? parseFloat(it.sric_other_charges) : parseFloat(it.other_charges || 0);
+
     if (!groups[key]) {
       groups[key] = {
         vendor_name: it.vendor_name,
@@ -227,22 +241,17 @@ const groupItemsByInvoice = (items = []) => {
         cgst_amount: 0,
         sgst_amount: 0,
         igst_amount: 0,
-        other_charges: parseFloat(it.other_charges || 0),
+        other_charges: 0,
         products: []
       };
-    } else {
-      groups[key].other_charges += parseFloat(it.other_charges || 0);
     }
-
-    const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
-    const cgst = parseFloat(it.cgst_amount || 0);
-    const sgst = parseFloat(it.sgst_amount || 0);
-    const igst = parseFloat(it.igst_amount || 0);
-    const prodTotal = base + cgst + sgst + igst;
 
     groups[key].cgst_amount += cgst;
     groups[key].sgst_amount += sgst;
     groups[key].igst_amount += igst;
+    groups[key].other_charges += other;
+
+    const prodTotal = base + cgst + sgst + igst;
 
     groups[key].products.push({
       ...it,

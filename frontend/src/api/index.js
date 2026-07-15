@@ -114,7 +114,7 @@ export const projectsApi = {
   getMy: () => api.get('/projects/my'),
   getBudgetHeads: (id) => api.get(`/projects/${id}/budget-heads`),
   getAll: () => api.get('/projects'),
-  assignPI: (id, employeeId) => api.patch(`/projects/${id}/assign`, { employee_id: employeeId }),
+  assignPI: (id, piEmployeeId, coPiEmployeeIds) => api.patch(`/projects/${id}/assign`, { pi_employee_id: piEmployeeId, co_pi_employee_ids: coPiEmployeeIds }),
   create: (data) => api.post('/projects', data),
   getFaculties: () => api.get('/projects/faculties'),
 };

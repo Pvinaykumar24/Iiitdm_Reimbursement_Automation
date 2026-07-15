@@ -20,7 +20,12 @@ router.get('/faculties', requireRole('SRIC'), async (req, res, next) => {
 
 router.patch('/:id/assign', requireRole('SRIC'), async (req, res, next) => {
   try {
-    const result = await service.assignProjectPI(req.params.id, req.body.employee_id);
+    const { employee_id, pi_employee_id, co_pi_employee_ids } = req.body;
+    const pi = pi_employee_id !== undefined ? pi_employee_id : employee_id;
+    const result = await service.updateProjectFaculty(req.params.id, {
+      pi_employee_id: pi,
+      co_pi_employee_ids: co_pi_employee_ids || []
+    });
     res.json(result);
   } catch (err) { next(err); }
 });

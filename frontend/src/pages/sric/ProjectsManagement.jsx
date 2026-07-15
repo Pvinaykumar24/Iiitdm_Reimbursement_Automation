@@ -6,7 +6,8 @@ const DEFAULT_NEW_PROJECT = {
   title: '',
   funding_agency: '',
   pi_employee_id: '',
-  total_budget: ''
+  total_budget: '',
+  co_pi_employee_ids: []
 };
 
 export default function ProjectsManagement() {
@@ -18,6 +19,7 @@ export default function ProjectsManagement() {
   // Assign PI Modal
   const [editingProject, setEditingProject] = useState(null);
   const [employeeIdInput, setEmployeeIdInput] = useState('');
+  const [coPiEmployeeIdsInput, setCoPiEmployeeIdsInput] = useState([]);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState('');
 
@@ -52,6 +54,7 @@ export default function ProjectsManagement() {
   const openAssignModal = (proj) => {
     setEditingProject(proj);
     setEmployeeIdInput(proj.pi_employee_id || '');
+    setCoPiEmployeeIdsInput(proj.co_pis?.map(cp => cp.employee_id) || []);
     setSaveError('');
     setSaveLoading(false);
   };
@@ -59,6 +62,7 @@ export default function ProjectsManagement() {
   const closeAssignModal = () => {
     setEditingProject(null);
     setEmployeeIdInput('');
+    setCoPiEmployeeIdsInput([]);
     setSaveError('');
   };
 
@@ -68,7 +72,7 @@ export default function ProjectsManagement() {
     setSaveLoading(true);
     setSaveError('');
 
-    projectsApi.assignPI(editingProject.id, employeeIdInput)
+    projectsApi.assignPI(editingProject.id, employeeIdInput, coPiEmployeeIdsInput)
       .then(() => {
         fetchProjects();
         closeAssignModal();
@@ -87,7 +91,8 @@ export default function ProjectsManagement() {
       title: '',
       funding_agency: '',
       pi_employee_id: '',
-      total_budget: ''
+      total_budget: '',
+      co_pi_employee_ids: []
     });
     setCreateError('');
     setCreateLoading(false);
@@ -109,7 +114,8 @@ export default function ProjectsManagement() {
       title: newProjForm.title.trim(),
       funding_agency: newProjForm.funding_agency.trim(),
       pi_employee_id: newProjForm.pi_employee_id.trim() || null,
-      total_budget: parseFloat(newProjForm.total_budget || 0)
+      total_budget: parseFloat(newProjForm.total_budget || 0),
+      co_pi_employee_ids: newProjForm.co_pi_employee_ids
     };
 
     projectsApi.create(payload)
@@ -199,10 +205,11 @@ export default function ProjectsManagement() {
           <table className="table">
             <thead>
               <tr>
-                <th style={{ width: '20%' }}>Project code</th>
-                <th style={{ width: '35%' }}>Project title</th>
+                <th style={{ width: '15%' }}>Project code</th>
+                <th style={{ width: '25%' }}>Project title</th>
                 <th style={{ width: '20%' }}>Assigned PI</th>
-                <th style={{ width: '15%' }}>Funding Agency</th>
+                <th style={{ width: '20%' }}>Co-PIs</th>
+                <th style={{ width: '10%' }}>Funding Agency</th>
                 <th style={{ width: '10%', textAlign: 'right' }}>Total Budget</th>
                 <th></th>
               </tr>
@@ -224,6 +231,17 @@ export default function ProjectsManagement() {
                       </span>
                     )}
                   </td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {p.co_pis && p.co_pis.length > 0 ? p.co_pis.map(cp => (
+                        <span key={cp.id} style={{ display: 'inline-flex', padding: '2px 6px', background: '#f5f5f4', border: '1px solid #e5e5e3', borderRadius: 4, fontSize: 11, width: 'max-content' }}>
+                          {cp.name} ({cp.employee_id})
+                        </span>
+                      )) : (
+                        <span style={{ color: '#888', fontStyle: 'italic', fontSize: 11 }}>None</span>
+                      )}
+                    </div>
+                  </td>
                   <td style={{ fontSize: 12 }}>{p.funding_agency}</td>
                   <td style={{ fontWeight: 500, textAlign: 'right' }}>
                     ₹{parseFloat(p.total_budget || 0).toLocaleString('en-IN')}
@@ -234,7 +252,7 @@ export default function ProjectsManagement() {
                       onClick={() => openAssignModal(p)}
                       style={{ fontSize: 11 }}
                     >
-                      Assign / Edit PI
+                      Manage Faculty
                     </button>
                   </td>
                 </tr>
@@ -244,17 +262,17 @@ export default function ProjectsManagement() {
         )}
       </div>
 
-      {/* Modern PI Assignment Modal */}
+      {/* Modern Faculty Management Modal */}
       {editingProject && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center',
           justifyContent: 'center', zIndex: 1000, fontFamily: 'system-ui'
         }}>
-          <div className="card" style={{ width: 440, padding: 24, borderRadius: 10, background: '#fff', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 600 }}>Assign PI Faculty</h3>
+          <div className="card" style={{ width: 460, padding: 24, borderRadius: 10, background: '#fff', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 600 }}>Manage Project Faculty</h3>
             <p style={{ margin: '0 0 16px 0', fontSize: '12px', color: '#666', lineHeight: 1.4 }}>
-              Assign a Principal Investigator (PI) to the project <strong>{editingProject.project_no}</strong>.
+              Manage PI and Co-PI faculty assignments for project <strong>{editingProject.project_no}</strong>.
             </p>
 
             <form onSubmit={handleSaveAssignment}>
@@ -274,6 +292,44 @@ export default function ProjectsManagement() {
                 <span style={{ fontSize: '11px', color: '#888', display: 'block', marginTop: 4 }}>
                   Enter the employee ID of the faculty member. Leave blank to unassign.
                 </span>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: 6, fontSize: '12px', fontWeight: 500 }}>
+                  Co-PIs
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                  {coPiEmployeeIdsInput.map(empId => {
+                    const fac = faculties.find(f => f.employee_id === empId);
+                    return (
+                      <span key={empId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#EEEDFE', color: '#534AB7', padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500 }}>
+                        {fac ? fac.name : empId} ({empId})
+                        <i className="ti ti-x" style={{ cursor: 'pointer', marginLeft: 2 }} onClick={() => {
+                          setCoPiEmployeeIdsInput(coPiEmployeeIdsInput.filter(id => id !== empId));
+                        }} />
+                      </span>
+                    );
+                  })}
+                  {coPiEmployeeIdsInput.length === 0 && (
+                    <span style={{ fontSize: 11, color: '#888', fontStyle: 'italic' }}>No Co-PIs assigned yet.</span>
+                  )}
+                </div>
+                <select
+                  onChange={e => {
+                    const empId = e.target.value;
+                    if (empId && !coPiEmployeeIdsInput.includes(empId)) {
+                      setCoPiEmployeeIdsInput([...coPiEmployeeIdsInput, empId]);
+                    }
+                    e.target.value = "";
+                  }}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d4d4d0', borderRadius: 6, fontSize: '13px' }}
+                  disabled={saveLoading}
+                >
+                  <option value="">-- Add a Co-PI --</option>
+                  {faculties.filter(f => f.employee_id !== employeeIdInput && !coPiEmployeeIdsInput.includes(f.employee_id)).map(f => (
+                    <option key={f.id} value={f.employee_id}>{f.name} ({f.employee_id})</option>
+                  ))}
+                </select>
               </div>
 
               {saveError && (
@@ -300,7 +356,7 @@ export default function ProjectsManagement() {
                       setEmployeeIdInput('');
                       setSaveError('');
                       setSaveLoading(true);
-                      projectsApi.assignPI(editingProject.id, '')
+                      projectsApi.assignPI(editingProject.id, '', coPiEmployeeIdsInput)
                         .then(() => {
                           fetchProjects();
                           closeAssignModal();
@@ -421,6 +477,50 @@ export default function ProjectsManagement() {
                     disabled={createLoading}
                   />
                 </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label className="form-label" style={{ display: 'block', marginBottom: 4, fontSize: '12px', fontWeight: 500 }}>
+                  Co-PIs
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                  {newProjForm.co_pi_employee_ids?.map(empId => {
+                    const fac = faculties.find(f => f.employee_id === empId);
+                    return (
+                      <span key={empId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#EEEDFE', color: '#534AB7', padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500 }}>
+                        {fac ? fac.name : empId} ({empId})
+                        <i className="ti ti-x" style={{ cursor: 'pointer', marginLeft: 2 }} onClick={() => {
+                          setNewProjForm({
+                            ...newProjForm,
+                            co_pi_employee_ids: newProjForm.co_pi_employee_ids.filter(id => id !== empId)
+                          });
+                        }} />
+                      </span>
+                    );
+                  })}
+                  {(!newProjForm.co_pi_employee_ids || newProjForm.co_pi_employee_ids.length === 0) && (
+                    <span style={{ fontSize: 11, color: '#888', fontStyle: 'italic' }}>No Co-PIs added yet.</span>
+                  )}
+                </div>
+                <select
+                  onChange={e => {
+                    const empId = e.target.value;
+                    if (empId && !newProjForm.co_pi_employee_ids.includes(empId)) {
+                      setNewProjForm({
+                        ...newProjForm,
+                        co_pi_employee_ids: [...newProjForm.co_pi_employee_ids, empId]
+                      });
+                    }
+                    e.target.value = "";
+                  }}
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d4d4d0', borderRadius: 6, fontSize: '13px' }}
+                  disabled={createLoading}
+                >
+                  <option value="">-- Add a Co-PI --</option>
+                  {faculties.filter(f => f.employee_id !== newProjForm.pi_employee_id && !newProjForm.co_pi_employee_ids?.includes(f.employee_id)).map(f => (
+                    <option key={f.id} value={f.employee_id}>{f.name} ({f.employee_id})</option>
+                  ))}
+                </select>
               </div>
 
               {createError && (

@@ -183,7 +183,7 @@ export default function PrintClaim() {
               <td className="meta-val">{claim.submitted_at ? new Date(claim.submitted_at).toLocaleDateString('en-IN') : '—'}</td>
             </tr>
             <tr>
-              <td className="meta-label">Name of PI:</td>
+              <td className="meta-label">Name of PI / Co-PI:</td>
               <td className="meta-val">{claim.faculty_name}</td>
               <td className="meta-label">Faculty ID:</td>
               <td className="meta-val">{claim.employee_id || '—'}</td>
@@ -323,9 +323,9 @@ export default function PrintClaim() {
                 <div className="sig-header" style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', color: '#2d3748', textTransform: 'uppercase' }}>Submitted By</div>
                 <div className="sig-body" style={{ fontSize: '11px' }}>
                   <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{claim.faculty_name}</p>
-                  <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>Principal Investigator (PI)</p>
+                  <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>Principal Investigator (PI) / Co-PI</p>
                   <div className="sig-line" style={{ borderBottom: '1px solid #718096', marginTop: '15px' }} />
-                  <p style={{ fontSize: '11px', margin: '6px 0 0 0' }}>Signature of PI / Date</p>
+                  <p style={{ fontSize: '11px', margin: '6px 0 0 0' }}>Signature of PI / Co-PI / Date</p>
                 </div>
               </div>
             </div>

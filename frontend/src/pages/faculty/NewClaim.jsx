@@ -273,8 +273,9 @@ export default function NewClaim() {
   };
 
   const grandTotal = invoices.reduce((sum, inv) => {
-    const invProdTotal = inv.products.reduce((s, p) => s + (p.total_amount || 0), 0);
-    return sum + invProdTotal + parseFloat(inv.other_charges || 0);
+    const invBase = inv.products.reduce((s, p) => s + (p.total_amount || 0), 0);
+    const { cgst_amt, sgst_amt, igst_amt, other_amt } = getEffectiveInvoiceTaxes(inv);
+    return sum + invBase + cgst_amt + sgst_amt + igst_amt + other_amt;
   }, 0);
 
   const totalItemsCount = invoices.reduce((sum, inv) => sum + inv.products.length, 0);
