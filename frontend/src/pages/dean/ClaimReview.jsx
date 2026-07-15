@@ -224,9 +224,9 @@ const groupItemsByInvoice = (items = []) => {
         bill_no: it.bill_no,
         bill_date: it.bill_date,
         gstin_vendor: it.gstin_vendor,
-        cgst_percent: parseFloat(it.cgst_percent || 0),
-        sgst_percent: parseFloat(it.sgst_percent || 0),
-        igst_percent: parseFloat(it.igst_percent || 0),
+        cgst_amount: 0,
+        sgst_amount: 0,
+        igst_amount: 0,
         other_charges: parseFloat(it.other_charges || 0),
         products: []
       };
@@ -235,10 +235,14 @@ const groupItemsByInvoice = (items = []) => {
     }
 
     const base = parseFloat(it.unit_price || 0) * parseInt(it.quantity || 1);
-    const cgst = base * parseFloat(it.cgst_percent || 0) / 100;
-    const sgst = base * parseFloat(it.sgst_percent || 0) / 100;
-    const igst = base * parseFloat(it.igst_percent || 0) / 100;
+    const cgst = parseFloat(it.cgst_amount || 0);
+    const sgst = parseFloat(it.sgst_amount || 0);
+    const igst = parseFloat(it.igst_amount || 0);
     const prodTotal = base + cgst + sgst + igst;
+
+    groups[key].cgst_amount += cgst;
+    groups[key].sgst_amount += sgst;
+    groups[key].igst_amount += igst;
 
     groups[key].products.push({
       ...it,
@@ -260,11 +264,7 @@ function BillItemsTable({ items = [], totalAmount }) {
 
       {invoices.map((inv, idx) => {
         const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)), 0);
-        const invGst = inv.products.reduce((sum, p) => {
-          const base = parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1);
-          const tax = base * (parseFloat(inv.cgst_percent || 0) + parseFloat(inv.sgst_percent || 0) + parseFloat(inv.igst_percent || 0)) / 100;
-          return sum + tax;
-        }, 0);
+        const invGst = inv.cgst_amount + inv.sgst_amount + inv.igst_amount;
         const invTotal = inv.products.reduce((sum, p) => sum + p.prod_total, 0) + parseFloat(inv.other_charges || 0);
 
         return (
@@ -318,12 +318,12 @@ function BillItemsTable({ items = [], totalAmount }) {
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#1a1a1a', fontWeight: '600' }}>
                 <div>Base Amount: ₹{invBase.toFixed(2)}</div>
-                {(parseFloat(inv.cgst_percent) > 0 || parseFloat(inv.sgst_percent) > 0 || parseFloat(inv.igst_percent) > 0) && (
+                {invGst > 0 && (
                   <div>
                     GST ({[
-                      parseFloat(inv.cgst_percent) > 0 && `CGST ${inv.cgst_percent}%`,
-                      parseFloat(inv.sgst_percent) > 0 && `SGST ${inv.sgst_percent}%`,
-                      parseFloat(inv.igst_percent) > 0 && `IGST ${inv.igst_percent}%`
+                      inv.cgst_amount > 0 && `CGST: ₹${inv.cgst_amount.toFixed(2)}`,
+                      inv.sgst_amount > 0 && `SGST: ₹${inv.sgst_amount.toFixed(2)}`,
+                      inv.igst_amount > 0 && `IGST: ₹${inv.igst_amount.toFixed(2)}`
                     ].filter(Boolean).join(', ')}): ₹{invGst.toFixed(2)}
                   </div>
                 )}
