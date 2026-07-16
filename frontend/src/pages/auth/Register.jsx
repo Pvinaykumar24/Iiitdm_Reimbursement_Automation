@@ -165,11 +165,11 @@ export default function Register() {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 48, height: 48, borderRadius: 14, background: '#534AB7',
+            width: 48, height: 48, borderRadius: 14, background: '#744FC6',
             marginBottom: 12, boxShadow: '0 4px 14px rgba(83,74,183,0.35)' }}>
             <i className="ti ti-building-community" style={{ fontSize: 24, color: '#fff' }} />
           </div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#26215C' }}>IIITDM Kancheepuram</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#4C4C9D' }}>IIITDM Kancheepuram</div>
           <div style={{ fontSize: 13, color: '#888', marginTop: 3 }}>Reimbursement Portal — Faculty Registration</div>
         </div>
 
@@ -186,13 +186,13 @@ export default function Register() {
                     width: 34, height: 34, borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 13, fontWeight: 700, transition: 'all 0.3s',
-                    background: done ? '#27ae60' : current ? '#534AB7' : '#e5e5e3',
+                    background: done ? '#27ae60' : current ? '#744FC6' : '#e5e5e3',
                     color: done || current ? '#fff' : '#aaa',
                     boxShadow: current ? '0 0 0 4px rgba(83,74,183,0.18)' : 'none',
                   }}>
                     {done ? <i className="ti ti-check" style={{ fontSize: 14 }} /> : num}
                   </div>
-                  <div style={{ fontSize: 10, color: done ? '#27ae60' : current ? '#534AB7' : '#aaa',
+                  <div style={{ fontSize: 10, color: done ? '#27ae60' : current ? '#744FC6' : '#aaa',
                     fontWeight: current ? 600 : 400, whiteSpace: 'nowrap' }}>{s.label}</div>
                 </div>
                 {i < stepMeta.length - 1 && (
@@ -266,7 +266,7 @@ export default function Register() {
                 </button>
 
                 <div style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: '#888' }}>
-                  Already have an account? <Link to="/login" style={{ color: '#534AB7', fontWeight: 500 }}>Sign in</Link>
+                  Already have an account? <Link to="/login" style={{ color: '#744FC6', fontWeight: 500 }}>Sign in</Link>
                 </div>
               </form>
             )}
@@ -277,7 +277,7 @@ export default function Register() {
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1a1a', marginBottom: 4 }}>Check your email</div>
                   <div style={{ fontSize: 13, color: '#888' }}>
-                    We sent a 6-digit OTP to <strong style={{ color: '#534AB7' }}>{email}</strong>
+                    We sent a 6-digit OTP to <strong style={{ color: '#744FC6' }}>{email}</strong>
                   </div>
                 </div>
 
@@ -296,8 +296,8 @@ export default function Register() {
                       onPaste={handleOtpPaste}
                       style={{
                         width: 48, height: 56, textAlign: 'center', fontSize: 22,
-                        fontWeight: 700, borderRadius: 10, border: digit ? '2px solid #534AB7' : '2px solid #e5e5e3',
-                        background: digit ? '#EEEDFE' : '#fafaf9', color: '#26215C',
+                        fontWeight: 700, borderRadius: 10, border: digit ? '2px solid #744FC6' : '2px solid #e5e5e3',
+                        background: digit ? '#f3f0fc' : '#fafaf9', color: '#4C4C9D',
                         outline: 'none', transition: 'all 0.15s',
                         fontFamily: 'monospace',
                       }}
@@ -314,10 +314,10 @@ export default function Register() {
 
                 <div style={{ textAlign: 'center', marginTop: 14, fontSize: 13, color: '#888' }}>
                   {timer > 0
-                    ? <>Resend available in <strong style={{ color: '#534AB7' }}>{timer}s</strong></>
+                    ? <>Resend available in <strong style={{ color: '#744FC6' }}>{timer}s</strong></>
                     : <>Didn't receive it?{' '}
                         <button type="button" onClick={handleResend} disabled={loading}
-                          style={{ background: 'none', border: 'none', color: '#534AB7', fontWeight: 500, cursor: 'pointer', fontSize: 13, padding: 0 }}>
+                          style={{ background: 'none', border: 'none', color: '#744FC6', fontWeight: 500, cursor: 'pointer', fontSize: 13, padding: 0 }}>
                           Resend OTP
                         </button>
                       </>}
@@ -395,7 +395,7 @@ export default function Register() {
                 {/* Summary */}
                 <div style={{ background: '#f8f8ff', border: '1px solid #e0dff8', borderRadius: 8,
                   padding: '12px 14px', marginBottom: 16, fontSize: 12, color: '#555' }}>
-                  <div style={{ fontWeight: 600, color: '#534AB7', marginBottom: 6, fontSize: 11 }}>ACCOUNT SUMMARY</div>
+                  <div style={{ fontWeight: 600, color: '#744FC6', marginBottom: 6, fontSize: 11 }}>ACCOUNT SUMMARY</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px' }}>
                     <div><span style={{ color: '#999' }}>Name: </span>{name}</div>
                     <div><span style={{ color: '#999' }}>Faculty ID: </span>{empId}</div>

@@ -112,7 +112,7 @@ export default function TopbarNotificationBell() {
             {unread.length > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                style={{ background: 'none', border: 'none', color: '#534AB7', fontSize: 11, cursor: 'pointer', fontWeight: 500 }}
+                style={{ background: 'none', border: 'none', color: '#744FC6', fontSize: 11, cursor: 'pointer', fontWeight: 500 }}
               >
                 Mark all read
               </button>
@@ -130,7 +130,7 @@ export default function TopbarNotificationBell() {
                   onClick={() => !n.is_read && handleMarkRead(n.id)}
                   style={{
                     padding: '10px 16px', borderBottom: '1px solid #f5f5f4',
-                    background: n.is_read ? '#fff' : '#EEEDFE',
+                    background: n.is_read ? '#fff' : '#f3f0fc',
                     cursor: n.is_read ? 'default' : 'pointer',
                     fontSize: 12, transition: 'background 0.15s'
                   }}

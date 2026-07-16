@@ -76,7 +76,7 @@ export default function ForgotPassword() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f4' }}>
       <div style={{ width: 380 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: '#534AB7' }}>IIITDM Kancheepuram</div>
+          <div style={{ fontSize: 20, fontWeight: 600, color: '#744FC6' }}>IIITDM Kancheepuram</div>
           <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>Reimbursement Portal</div>
         </div>
         <div className="card">
@@ -171,7 +171,7 @@ export default function ForgotPassword() {
             )}
 
             <div style={{ textAlign: 'center', marginTop: 18, fontSize: 13 }}>
-              <Link to="/login" style={{ color: '#534AB7', fontWeight: 500, textDecoration: 'none' }}>
+              <Link to="/login" style={{ color: '#744FC6', fontWeight: 500, textDecoration: 'none' }}>
                 ← Back to Login
               </Link>
             </div>

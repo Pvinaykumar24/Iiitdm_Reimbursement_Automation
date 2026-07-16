@@ -23,8 +23,8 @@ export default function ToastContainer() {
         const isSuccess = t.type === 'success';
         const isError = t.type === 'error';
         
-        const bg = isError ? '#FCEBEB' : isSuccess ? '#EAF3DE' : '#EEEDFE';
-        const color = isError ? '#791F1F' : isSuccess ? '#27500A' : '#26215C';
+        const bg = isError ? '#FCEBEB' : isSuccess ? '#EAF3DE' : '#f3f0fc';
+        const color = isError ? '#791F1F' : isSuccess ? '#27500A' : '#4C4C9D';
         const border = isError ? '1px solid #F3C3C3' : isSuccess ? '1px solid #D1E7B9' : '1px solid #D3CEF9';
         const icon = isError ? 'ti-circle-x' : isSuccess ? 'ti-circle-check' : 'ti-bell';
 

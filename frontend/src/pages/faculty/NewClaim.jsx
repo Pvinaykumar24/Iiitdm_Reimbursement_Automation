@@ -337,39 +337,42 @@ export default function NewClaim() {
       </div>
 
       {/* ── Stepper ── */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         {['Project details', 'Bill items', 'Review & submit'].map((label, i) => (
           <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,
-            padding: '4px 12px', borderRadius: 20,
-            background: step === i + 1 ? '#EEEDFE' : step > i + 1 ? '#EAF3DE' : '#f5f5f4',
-            color: step === i + 1 ? '#3C3489' : step > i + 1 ? '#27500A' : '#888',
-            fontWeight: step === i + 1 ? 500 : 400
+            display: 'flex', alignItems: 'center', gap: 8, fontSize: '14px',
+            padding: '8px 18px', borderRadius: '30px',
+            background: step === i + 1 ? '#f3f0fc' : step > i + 1 ? '#dcfce7' : '#f1f5f9',
+            color: step === i + 1 ? '#744FC6' : step > i + 1 ? '#15803d' : '#64748b',
+            fontWeight: step >= i + 1 ? 600 : 500,
+            border: '1px solid',
+            borderColor: step === i + 1 ? '#d5d3d0' : step > i + 1 ? '#bbf7d0' : '#e1e0de',
+            boxShadow: step === i + 1 ? '0 2px 4px rgba(83,74,183,0.08)' : 'none',
           }}>
-            {step > i + 1 ? <i className="ti ti-check" /> : <span>{i + 1}</span>}
+            {step > i + 1 ? <i className="ti ti-circle-check" style={{ fontSize: 16 }} /> : <span style={{ background: step === i + 1 ? '#744FC6' : '#94a3b8', color: '#fff', width: 22, height: 22, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{i + 1}</span>}
             {label}
           </div>
         ))}
       </div>
 
-      {error && <div className="alert alert-error"><i className="ti ti-alert-circle" />{error}</div>}
+      {error && <div className="alert alert-error" style={{ fontSize: 15, padding: '14px 18px' }}><i className="ti ti-alert-circle" style={{ fontSize: 18 }} />{error}</div>}
 
       {/* ── Step 1: Project details ── */}
       {step === 1 && (
-        <div className="card">
-          <div className="card-header">Step 1 — Project details</div>
-          <div className="card-body">
+        <div className="card" style={{ maxWidth: 800 }}>
+          <div className="card-header" style={{ fontSize: 18, padding: '20px 32px' }}>Step 1 — Project & Purpose</div>
+          <div className="card-body" style={{ padding: '32px' }}>
             <form onSubmit={handleStep1}>
-              <div className="form-group">
-                <label className="form-label">Project *</label>
+              <div className="form-group" style={{ marginBottom: 24 }}>
+                <label className="form-label" style={{ fontSize: 15, marginBottom: 8 }}>Project Funding *</label>
                 {projectsLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#666' }}>
-                    <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, color: '#64748b', padding: '10px 14px' }}>
+                    <div className="spinner" style={{ width: 20, height: 20 }} />
                     Loading assigned projects...
                   </div>
                 ) : myProjects.length === 0 ? (
-                  <div style={{ padding: '10px 14px', background: '#FFF5F5', border: '1px solid #E53E3E', color: '#C53030', borderRadius: 6, fontSize: '13px', fontWeight: 500, lineHeight: 1.4 }}>
-                    <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />
+                  <div style={{ padding: '16px 20px', background: '#fef2f2', border: '1.5px solid #fecaca', color: '#b91c1c', borderRadius: 8, fontSize: '15px', fontWeight: 600, lineHeight: 1.5 }}>
+                    <i className="ti ti-alert-circle" style={{ marginRight: 8, fontSize: 18, verticalAlign: 'middle' }} />
                     No assigned projects found. Please contact the SRIC Cell to assign a project to your profile before creating a claim.
                   </div>
                 ) : (
@@ -377,7 +380,7 @@ export default function NewClaim() {
                     value={form.project_no}
                     onChange={e => setForm({ ...form, project_no: e.target.value })}
                     required
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #d4d4d0', borderRadius: 6, fontSize: '13px', background: '#fff', outline: 'none' }}
+                    style={{ width: '100%', padding: '12px 16px', fontSize: '15px', borderRadius: 8, border: '1.5px solid #d5d3d0', background: '#fff', outline: 'none', height: 48 }}
                   >
                     <option value="">-- Select Assigned Project --</option>
                     {myProjects.map(p => (
@@ -387,24 +390,25 @@ export default function NewClaim() {
                     ))}
                   </select>
                 )}
-                <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                <div style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>
                   Select the project funding this reimbursement claim from your assigned list.
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Purpose of expenditure *</label>
+              <div className="form-group" style={{ marginBottom: 28 }}>
+                <label className="form-label" style={{ fontSize: 15, marginBottom: 8 }}>Purpose of Expenditure *</label>
                 <textarea
-                  rows={3}
+                  rows={4}
                   value={form.purpose}
                   onChange={e => setForm({ ...form, purpose: e.target.value })}
-                  placeholder="e.g., AC Repair + Everest Stabilizer 5KVA for Lab 417B"
+                  placeholder="Provide a detailed purpose (e.g., AC Repair + Everest Stabilizer 5KVA for Lab 417B)"
                   required
+                  style={{ padding: '12px 16px', fontSize: '15px', lineHeight: 1.5 }}
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary" disabled={loading || projectsLoading || myProjects.length === 0}>
-                {loading ? 'Creating...' : 'Continue →'}
+              <button type="submit" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: 15, height: 48 }} disabled={loading || projectsLoading || myProjects.length === 0}>
+                {loading ? 'Creating...' : 'Continue to Invoice & Items →'}
               </button>
             </form>
           </div>
@@ -418,51 +422,54 @@ export default function NewClaim() {
 
           {/* Project & budget head summary bar */}
           <div style={{
-            background: '#fafaf9', border: '1px solid #e5e5e3', borderRadius: 8,
-            padding: '10px 14px', marginBottom: 16, fontSize: 12, display: 'flex', gap: 20, flexWrap: 'wrap'
+            background: '#eff6ff', border: '1.5px solid #bfdbfe', borderRadius: 10,
+            padding: '14px 20px', marginBottom: 24, fontSize: 14, display: 'flex', gap: 24, flexWrap: 'wrap', color: '#1e3a8a', fontWeight: 500
           }}>
-            <span><span style={{ color: '#888' }}>Project: </span><strong>{form.project_no}</strong></span>
+            <span><i className="ti ti-folder-open" style={{ marginRight: 6 }} /><span style={{ color: '#60a5fa' }}>Selected Project: </span><strong>{form.project_no}</strong></span>
+            <span><i className="ti ti-notes" style={{ marginRight: 6 }} /><span style={{ color: '#60a5fa' }}>Purpose: </span><strong>{form.purpose}</strong></span>
           </div>
 
           {invoices.map((inv, idx) => (
-            <div key={idx} className="card" style={{ marginBottom: 20, border: '1px solid #d4d4d0' }}>
-              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f5f5f4' }}>
-                <span>Billing Invoice {idx + 1}</span>
+            <div key={idx} className="card" style={{ marginBottom: 28, border: '1px solid #d5d3d0' }}>
+              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '16px 32px' }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#4C4C9D' }}>Billing Invoice #{idx + 1}</span>
                 {invoices.length > 1 && (
-                  <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} onClick={() => removeInvoice(idx)}>
-                    <i className="ti ti-trash" style={{ color: '#A32D2D', marginRight: 4 }} /> Remove Invoice
+                  <button type="button" className="btn btn-danger btn-sm" style={{ padding: '6px 12px' }} onClick={() => removeInvoice(idx)}>
+                    <i className="ti ti-trash" style={{ marginRight: 6 }} /> Remove Invoice
                   </button>
                 )}
               </div>
-              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div className="card-body" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
                 {/* Header Info */}
                 <div className="form-row form-row-4">
-                  <div className="form-group">
-                    <label className="form-label">Vendor name *</label>
-                    <input type="text" value={inv.vendor_name} onChange={e => updateInvoiceHeader(idx, 'vendor_name', e.target.value)} required />
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Vendor Name *</label>
+                    <input type="text" value={inv.vendor_name} onChange={e => updateInvoiceHeader(idx, 'vendor_name', e.target.value)} required style={{ height: 44 }} />
                   </div>
-                  <div className="form-group">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
                     <label className="form-label">Vendor GSTIN (optional)</label>
-                    <input type="text" value={inv.gstin_vendor} onChange={e => updateInvoiceHeader(idx, 'gstin_vendor', e.target.value)} placeholder="Optional" />
+                    <input type="text" value={inv.gstin_vendor} onChange={e => updateInvoiceHeader(idx, 'gstin_vendor', e.target.value)} placeholder="e.g. 33AAAAA0000A1Z1" style={{ height: 44 }} />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Bill date *</label>
-                    <input type="date" value={inv.bill_date} onChange={e => updateInvoiceHeader(idx, 'bill_date', e.target.value)} max={new Date().toISOString().split('T')[0]} required />
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Bill Date *</label>
+                    <input type="date" value={inv.bill_date} onChange={e => updateInvoiceHeader(idx, 'bill_date', e.target.value)} max={new Date().toISOString().split('T')[0]} required style={{ height: 44 }} />
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Bill / invoice no. *</label>
-                    <input type="text" value={inv.bill_no} onChange={e => updateInvoiceHeader(idx, 'bill_no', e.target.value)} required />
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Bill / Invoice No. *</label>
+                    <input type="text" value={inv.bill_no} onChange={e => updateInvoiceHeader(idx, 'bill_no', e.target.value)} required style={{ height: 44 }} />
                   </div>
                 </div>
 
                 {/* Products Section */}
-                <div style={{ background: '#fcfcfb', border: '1px dashed #d4d4d0', borderRadius: 8, padding: '12px 14px' }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#534AB7', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Products / Items</div>
+                <div style={{ background: '#f8fafc', border: '1.5px dashed #d5d3d0', borderRadius: 10, padding: '20px 24px' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#744FC6', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="ti ti-shopping-cart" style={{ fontSize: 16 }} /> Products / Items list
+                  </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '30px 2fr 80px 100px 120px 100px 40px', gap: 10, marginBottom: 6, fontSize: 11, fontWeight: 600, color: '#666', paddingBottom: 4, borderBottom: '1px solid #f0f0ee' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '40px 2.5fr 100px 110px 140px 120px 45px', gap: 12, marginBottom: 10, fontSize: 12, fontWeight: 700, color: '#475569', paddingBottom: 8, borderBottom: '1.5px solid #d5d3d0' }}>
                     <div style={{ textAlign: 'center' }}>#</div>
-                    <div>Description *</div>
+                    <div>Item Description *</div>
                     <div>Qty *</div>
                     <div>Unit</div>
                     <div>Unit Price (₹) *</div>
@@ -471,136 +478,141 @@ export default function NewClaim() {
                   </div>
 
                   {inv.products.map((prod, pIdx) => (
-                    <div key={pIdx} style={{ display: 'grid', gridTemplateColumns: '30px 2fr 80px 100px 120px 100px 40px', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                      <div style={{ textAlign: 'center', fontWeight: 500, fontSize: 13, color: '#666' }}>{pIdx + 1}</div>
+                    <div key={pIdx} style={{ display: 'grid', gridTemplateColumns: '40px 2.5fr 100px 110px 140px 120px 45px', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                      <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 14, color: '#64748b' }}>{pIdx + 1}</div>
                       <div>
-                        <input type="text" placeholder="Item description *" value={prod.description} onChange={e => updateProduct(idx, pIdx, 'description', e.target.value)} required />
+                        <input type="text" placeholder="Item description *" value={prod.description} onChange={e => updateProduct(idx, pIdx, 'description', e.target.value)} required style={{ height: 40 }} />
                       </div>
                       <div>
-                        <input type="number" min={1} placeholder="Qty" value={prod.quantity} onChange={e => updateProduct(idx, pIdx, 'quantity', e.target.value)} required />
+                        <input type="number" min={1} placeholder="Qty" value={prod.quantity} onChange={e => updateProduct(idx, pIdx, 'quantity', e.target.value)} required style={{ height: 40 }} />
                       </div>
                       <div>
-                        <select value={prod.quantity_unit} onChange={e => updateProduct(idx, pIdx, 'quantity_unit', e.target.value)} required>
+                        <select value={prod.quantity_unit} onChange={e => updateProduct(idx, pIdx, 'quantity_unit', e.target.value)} required style={{ height: 40, padding: '8px 12px' }}>
                           {QUANTITY_UNITS.map(unit => (
                             <option key={unit} value={unit}>{unit}</option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <input type="number" step="0.01" min={0} placeholder="Unit Price *" value={prod.unit_price} onChange={e => updateProduct(idx, pIdx, 'unit_price', e.target.value)} required />
+                        <input type="number" step="0.01" min={0} placeholder="Price ₹" value={prod.unit_price} onChange={e => updateProduct(idx, pIdx, 'unit_price', e.target.value)} required style={{ height: 40 }} />
                       </div>
-                      <div style={{ fontWeight: 500, textAlign: 'right', paddingRight: 10, fontSize: 13 }}>
-                        ₹{(prod.total_amount || 0).toFixed(2)}
+                      <div style={{ fontWeight: 700, textAlign: 'right', paddingRight: 10, fontSize: 15, color: '#4C4C9D' }}>
+                        ₹{(prod.total_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </div>
                       <div style={{ textAlign: 'center' }}>
                         {inv.products.length > 1 && (
-                          <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '4px 6px', border: 'none', background: 'transparent' }} onClick={() => removeProduct(idx, pIdx)}>
-                            <i className="ti ti-trash" style={{ color: '#A32D2D', fontSize: 14 }} />
+                          <button type="button" className="btn btn-danger" style={{ padding: '6px 8px', background: 'transparent', borderColor: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => removeProduct(idx, pIdx)} title="Delete item">
+                            <i className="ti ti-trash" style={{ color: '#dc2626', fontSize: 16 }} />
                           </button>
                         )}
                       </div>
                     </div>
                   ))}
 
-                  <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 6, background: '#fff' }} onClick={() => addProduct(idx)}>
-                    <i className="ti ti-plus" style={{ marginRight: 4 }} /> Add new item
+                  <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 8, background: '#fff', padding: '8px 16px', fontSize: 13 }} onClick={() => addProduct(idx)}>
+                    <i className="ti ti-plus" style={{ marginRight: 6 }} /> Add new product item
                   </button>
                 </div>
 
                 {/* Tax & Extra Row */}
-                <div className="form-row form-row-4" style={{ marginTop: 10 }}>
-                  <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      CGST
-                      <select 
-                        value={inv.cgst_type || 'percent'} 
-                        onChange={e => updateInvoiceHeader(idx, 'cgst_type', e.target.value)}
-                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
-                      >
-                        <option value="percent">%</option>
-                        <option value="value">₹</option>
-                      </select>
-                    </label>
-                    {inv.cgst_type === 'value' ? (
-                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.cgst_value || ''} onChange={e => updateInvoiceHeader(idx, 'cgst_value', e.target.value)} />
-                    ) : (
-                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.cgst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'cgst_percent', e.target.value)} />
-                    )}
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      SGST
-                      <select 
-                        value={inv.sgst_type || 'percent'} 
-                        onChange={e => updateInvoiceHeader(idx, 'sgst_type', e.target.value)}
-                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
-                      >
-                        <option value="percent">%</option>
-                        <option value="value">₹</option>
-                      </select>
-                    </label>
-                    {inv.sgst_type === 'value' ? (
-                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.sgst_value || ''} onChange={e => updateInvoiceHeader(idx, 'sgst_value', e.target.value)} />
-                    ) : (
-                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.sgst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'sgst_percent', e.target.value)} />
-                    )}
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      IGST
-                      <select 
-                        value={inv.igst_type || 'percent'} 
-                        onChange={e => updateInvoiceHeader(idx, 'igst_type', e.target.value)}
-                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
-                      >
-                        <option value="percent">%</option>
-                        <option value="value">₹</option>
-                      </select>
-                    </label>
-                    {inv.igst_type === 'value' ? (
-                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.igst_value || ''} onChange={e => updateInvoiceHeader(idx, 'igst_value', e.target.value)} />
-                    ) : (
-                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.igst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'igst_percent', e.target.value)} />
-                    )}
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      Other Charges
-                      <select 
-                        value={inv.other_type || 'value'} 
-                        onChange={e => updateInvoiceHeader(idx, 'other_type', e.target.value)}
-                        style={{ border: 'none', background: 'transparent', padding: 0, fontSize: 11, cursor: 'pointer', outline: 'none', color: '#534AB7', fontWeight: 600 }}
-                      >
-                        <option value="percent">%</option>
-                        <option value="value">₹</option>
-                      </select>
-                    </label>
-                    {inv.other_type === 'percent' ? (
-                      <input type="number" step="0.01" min={0} placeholder="Pct %" value={inv.other_percent || ''} onChange={e => updateInvoiceHeader(idx, 'other_percent', e.target.value)} />
-                    ) : (
-                      <input type="number" step="0.01" min={0} placeholder="Amt ₹" value={inv.other_value || ''} onChange={e => updateInvoiceHeader(idx, 'other_value', e.target.value)} />
-                    )}
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Taxes & Other Charges</div>
+                  <div className="form-row form-row-4">
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        CGST
+                        <select 
+                          value={inv.cgst_type || 'percent'} 
+                          onChange={e => updateInvoiceHeader(idx, 'cgst_type', e.target.value)}
+                          style={{ width: 'auto', border: 'none', background: 'transparent', padding: 0, fontSize: 12, cursor: 'pointer', outline: 'none', color: '#744FC6', fontWeight: 700 }}
+                        >
+                          <option value="percent">% Percentage</option>
+                          <option value="value">₹ Absolute Amount</option>
+                        </select>
+                      </label>
+                      {inv.cgst_type === 'value' ? (
+                        <input type="number" step="0.01" min={0} placeholder="CGST Amt ₹" value={inv.cgst_value || ''} onChange={e => updateInvoiceHeader(idx, 'cgst_value', e.target.value)} style={{ height: 42 }} />
+                      ) : (
+                        <input type="number" step="0.01" min={0} placeholder="CGST % Rate" value={inv.cgst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'cgst_percent', e.target.value)} style={{ height: 42 }} />
+                      )}
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        SGST
+                        <select 
+                          value={inv.sgst_type || 'percent'} 
+                          onChange={e => updateInvoiceHeader(idx, 'sgst_type', e.target.value)}
+                          style={{ width: 'auto', border: 'none', background: 'transparent', padding: 0, fontSize: 12, cursor: 'pointer', outline: 'none', color: '#744FC6', fontWeight: 700 }}
+                        >
+                          <option value="percent">% Percentage</option>
+                          <option value="value">₹ Absolute Amount</option>
+                        </select>
+                      </label>
+                      {inv.sgst_type === 'value' ? (
+                        <input type="number" step="0.01" min={0} placeholder="SGST Amt ₹" value={inv.sgst_value || ''} onChange={e => updateInvoiceHeader(idx, 'sgst_value', e.target.value)} style={{ height: 42 }} />
+                      ) : (
+                        <input type="number" step="0.01" min={0} placeholder="SGST % Rate" value={inv.sgst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'sgst_percent', e.target.value)} style={{ height: 42 }} />
+                      )}
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        IGST
+                        <select 
+                          value={inv.igst_type || 'percent'} 
+                          onChange={e => updateInvoiceHeader(idx, 'igst_type', e.target.value)}
+                          style={{ width: 'auto', border: 'none', background: 'transparent', padding: 0, fontSize: 12, cursor: 'pointer', outline: 'none', color: '#744FC6', fontWeight: 700 }}
+                        >
+                          <option value="percent">% Percentage</option>
+                          <option value="value">₹ Absolute Amount</option>
+                        </select>
+                      </label>
+                      {inv.igst_type === 'value' ? (
+                        <input type="number" step="0.01" min={0} placeholder="IGST Amt ₹" value={inv.igst_value || ''} onChange={e => updateInvoiceHeader(idx, 'igst_value', e.target.value)} style={{ height: 42 }} />
+                      ) : (
+                        <input type="number" step="0.01" min={0} placeholder="IGST % Rate" value={inv.igst_percent || ''} onChange={e => updateInvoiceHeader(idx, 'igst_percent', e.target.value)} style={{ height: 42 }} />
+                      )}
+                    </div>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        Other Charges
+                        <select 
+                          value={inv.other_type || 'value'} 
+                          onChange={e => updateInvoiceHeader(idx, 'other_type', e.target.value)}
+                          style={{ width: 'auto', border: 'none', background: 'transparent', padding: 0, fontSize: 12, cursor: 'pointer', outline: 'none', color: '#744FC6', fontWeight: 700 }}
+                        >
+                          <option value="percent">% Percentage</option>
+                          <option value="value">₹ Absolute Amount</option>
+                        </select>
+                      </label>
+                      {inv.other_type === 'percent' ? (
+                        <input type="number" step="0.01" min={0} placeholder="Other % Rate" value={inv.other_percent || ''} onChange={e => updateInvoiceHeader(idx, 'other_percent', e.target.value)} style={{ height: 42 }} />
+                      ) : (
+                        <input type="number" step="0.01" min={0} placeholder="Other Amt ₹" value={inv.other_value || ''} onChange={e => updateInvoiceHeader(idx, 'other_value', e.target.value)} style={{ height: 42 }} />
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* Calculation Info */}
-                <div style={{ fontSize: 12, color: '#666', background: '#fafaf9', padding: '10px 14px', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-                  <div>
-                    Products Base: ₹{inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0).toFixed(2)} ·
-                    GST Total: ₹{(() => {
+                <div style={{ fontSize: 13, color: '#475569', background: '#f8fafc', border: '1px solid #e1e0de', padding: '14px 20px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    <span>Base Amount: <strong>₹{inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></span>
+                    <span>•</span>
+                    <span>GST Total: <strong>₹{(() => {
                       const { cgst_amt, sgst_amt, igst_amt } = getEffectiveInvoiceTaxes(inv);
-                      return (cgst_amt + sgst_amt + igst_amt).toFixed(2);
-                    })()} ·
-                    Other charges: ₹{(() => {
+                      return (cgst_amt + sgst_amt + igst_amt).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                    })()}</strong></span>
+                    <span>•</span>
+                    <span>Other Charges: <strong>₹{(() => {
                       const { other_amt } = getEffectiveInvoiceTaxes(inv);
-                      return other_amt.toFixed(2);
-                    })()}
+                      return other_amt.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                    })()}</strong></span>
                   </div>
                   <div>
-                    <strong style={{ color: '#1a1a1a', fontSize: 13 }}>Invoice Total: ₹{(() => {
+                    <strong style={{ color: '#744FC6', fontSize: 15 }}>Invoice Total: ₹{(() => {
                       const baseTotal = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0);
                       const { cgst_amt, sgst_amt, igst_amt, other_amt } = getEffectiveInvoiceTaxes(inv);
-                      return (baseTotal + cgst_amt + sgst_amt + igst_amt + other_amt).toFixed(2);
+                      return (baseTotal + cgst_amt + sgst_amt + igst_amt + other_amt).toLocaleString('en-IN', { minimumFractionDigits: 2 });
                     })()}</strong>
                   </div>
                 </div>
@@ -609,18 +621,29 @@ export default function NewClaim() {
             </div>
           ))}
 
-          <button type="button" className="btn btn-ghost" style={{ width: '100%', marginBottom: 16, background: '#fff' }} onClick={addInvoice}>
-            <i className="ti ti-plus" style={{ marginRight: 6 }} /> Add new bill invoice
+          <button type="button" className="btn btn-ghost" style={{ width: '100%', marginBottom: 28, background: '#fff', height: 48, fontSize: 15 }} onClick={addInvoice}>
+            <i className="ti ti-plus" style={{ marginRight: 6 }} /> Add new billing invoice
           </button>
 
-          <div style={{ background: '#EEEDFE', borderRadius: 8, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #f3f0fc 0%, #eeebfc 100%)',
+            border: '1.5px solid #d5d3d0',
+            borderRadius: 12,
+            padding: '20px 28px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16,
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+          }}>
             <div>
-              <div style={{ fontSize: 11, color: '#534AB7' }}>Claim total ({totalItemsCount} item{totalItemsCount > 1 ? 's' : ''})</div>
-              <div style={{ fontSize: 22, fontWeight: 500, color: '#26215C' }}>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+              <div style={{ fontSize: 13, color: '#744FC6', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reimbursement Claim Grand Total ({totalItemsCount} item{totalItemsCount !== 1 ? 's' : ''})</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#4C4C9D', fontFamily: "'Outfit', sans-serif", marginTop: 4 }}>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>← Back</button>
-              <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Saving...' : 'Review →'}</button>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button type="button" className="btn btn-ghost" style={{ height: 48, padding: '0 24px' }} onClick={() => setStep(1)}><i className="ti ti-arrow-left" style={{ marginRight: 6 }} /> Back</button>
+              <button type="submit" className="btn btn-primary" style={{ height: 48, padding: '0 28px' }} disabled={loading}>{loading ? 'Saving...' : 'Review Claim Details →'}</button>
             </div>
           </div>
         </form>
@@ -629,17 +652,25 @@ export default function NewClaim() {
       {/* ── Step 3: Review & Submit ── */}
       {step === 3 && (
         <div>
-          <div className="card" style={{ marginBottom: 16 }}>
-            <div className="card-header">Review claim details</div>
-            <div className="card-body">
-              <div className="form-row form-row-2" style={{ marginBottom: 16 }}>
-                <div><div style={{ fontSize: 11, color: '#888' }}>Project</div><div style={{ fontWeight: 500, marginTop: 2 }}>{form.project_no}</div></div>
-                <div><div style={{ fontSize: 11, color: '#888' }}>Purpose</div><div style={{ fontWeight: 500, marginTop: 2, fontSize: 13 }}>{form.purpose}</div></div>
+          <div className="card" style={{ marginBottom: 24 }}>
+            <div className="card-header" style={{ fontSize: 16, padding: '16px 32px' }}>Review claim project details</div>
+            <div className="card-body" style={{ padding: '32px' }}>
+              <div className="form-row form-row-2">
+                <div>
+                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Project Number</div>
+                  <div style={{ fontWeight: 700, marginTop: 4, fontSize: 16, color: '#4C4C9D' }}>{form.project_no}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Purpose of Expenditure</div>
+                  <div style={{ fontWeight: 500, marginTop: 4, fontSize: 15, color: '#334155' }}>{form.purpose}</div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#444', marginBottom: 10 }}>Invoices List</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#4C4C9D', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <i className="ti ti-receipt" style={{ color: '#744FC6' }} /> Billing Invoices Summary
+          </div>
 
           {invoices.map((inv, idx) => {
             const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * (parseInt(p.quantity) || 0)), 0);
@@ -648,54 +679,54 @@ export default function NewClaim() {
             const invTotal = invBase + invGst + other_amt;
 
             return (
-              <div key={idx} className="card" style={{ marginBottom: 16 }}>
-                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>Billing Invoice {idx + 1} — No: <strong>{inv.bill_no}</strong></span>
-                  <span style={{ fontSize: 12, color: '#666' }}>Date: {new Date(inv.bill_date).toLocaleDateString('en-IN')}</span>
+              <div key={idx} className="card" style={{ marginBottom: 24, border: '1px solid #e1e0de' }}>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '16px 32px' }}>
+                  <span style={{ fontWeight: 700 }}>Invoice #{idx + 1} — No: <strong style={{ color: '#744FC6' }}>{inv.bill_no}</strong></span>
+                  <span style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>Bill Date: {new Date(inv.bill_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                 </div>
-                <div className="card-body">
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 13, marginBottom: 12, borderBottom: '1px solid #f0f0ee', paddingBottom: 10 }}>
-                    <div><span style={{ color: '#888' }}>Vendor:</span> <strong>{inv.vendor_name}</strong></div>
-                    <div><span style={{ color: '#888' }}>Vendor GSTIN:</span> {inv.gstin_vendor || '—'}</div>
+                <div className="card-body" style={{ padding: '32px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, fontSize: 14, marginBottom: 16, borderBottom: '1px solid #f1f5f9', paddingBottom: 16 }}>
+                    <div><span style={{ color: '#64748b', fontWeight: 500 }}>Vendor Name:</span> <strong>{inv.vendor_name}</strong></div>
+                    <div><span style={{ color: '#64748b', fontWeight: 500 }}>Vendor GSTIN:</span> {inv.gstin_vendor || '—'}</div>
                   </div>
 
-                  <table className="table" style={{ marginBottom: 12 }}>
+                  <table className="table" style={{ marginBottom: 20 }}>
                     <thead>
                       <tr>
-                        <th style={{ width: 40 }}>#</th>
-                        <th>Description</th>
-                        <th style={{ width: 100, textAlign: 'right' }}>Qty</th>
-                        <th style={{ width: 120, textAlign: 'right' }}>Unit Price</th>
-                        <th style={{ width: 120, textAlign: 'right' }}>Total</th>
+                        <th style={{ width: 50 }}>#</th>
+                        <th>Item Description</th>
+                        <th style={{ width: 140, textAlign: 'right' }}>Quantity</th>
+                        <th style={{ width: 150, textAlign: 'right' }}>Unit Price</th>
+                        <th style={{ width: 150, textAlign: 'right' }}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {inv.products.map((p, pIdx) => (
                         <tr key={pIdx}>
                           <td>{pIdx + 1}</td>
-                          <td>{p.description}</td>
-                          <td style={{ textAlign: 'right' }}>{p.quantity} {p.quantity_unit}</td>
-                          <td style={{ textAlign: 'right' }}>₹{parseFloat(p.unit_price || 0).toFixed(2)}</td>
-                          <td style={{ textAlign: 'right', fontWeight: 500 }}>₹{p.total_amount.toFixed(2)}</td>
+                          <td style={{ fontWeight: 500, color: '#4C4C9D' }}>{p.description}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 500 }}>{p.quantity} {p.quantity_unit}</td>
+                          <td style={{ textAlign: 'right' }}>₹{parseFloat(p.unit_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 700, color: '#4C4C9D' }}>₹{p.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#1a1a1a', fontWeight: '600' }}>
-                    <div>Base Amount: ₹{invBase.toFixed(2)}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, fontSize: 14, color: '#334155', fontWeight: '600' }}>
+                    <div>Base Amount: ₹{invBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                     {(cgst_amt > 0 || sgst_amt > 0 || igst_amt > 0) && (
-                      <div>
+                      <div style={{ color: '#475569' }}>
                         GST ({[
-                          cgst_amt > 0 && `CGST: ₹${cgst_amt.toFixed(2)}`,
-                          sgst_amt > 0 && `SGST: ₹${sgst_amt.toFixed(2)}`,
-                          igst_amt > 0 && `IGST: ₹${igst_amt.toFixed(2)}`
-                        ].filter(Boolean).join(', ')}): ₹{invGst.toFixed(2)}
+                          cgst_amt > 0 && `CGST: ₹${cgst_amt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                          sgst_amt > 0 && `SGST: ₹${sgst_amt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                          igst_amt > 0 && `IGST: ₹${igst_amt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                        ].filter(Boolean).join(', ')}): ₹{invGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </div>
                     )}
-                    {other_amt > 0 && <div>Other Charges: ₹{other_amt.toFixed(2)}</div>}
-                    <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 700, marginTop: 4 }}>
-                      Invoice Total: ₹{invTotal.toFixed(2)}
+                    {other_amt > 0 && <div>Other Charges: ₹{other_amt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>}
+                    <div style={{ fontSize: 16, color: '#744FC6', fontWeight: 800, marginTop: 6, borderTop: '1px solid #e1e0de', paddingTop: 6, width: '100%', textAlign: 'right' }}>
+                      Invoice Total: ₹{invTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                 </div>
@@ -703,17 +734,23 @@ export default function NewClaim() {
             );
           })}
 
-          <div className="card" style={{ marginBottom: 16, background: '#EEEDFE', borderColor: '#d0cbf7' }}>
-            <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px' }}>
-              <div style={{ fontSize: 14, color: '#26215C', fontWeight: 500 }}>Reimbursement Claim Grand Total</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#3c3489' }}>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+          <div className="card" style={{ marginBottom: 24, background: 'linear-gradient(135deg, #f3f0fc 0%, #eeebfc 100%)', borderColor: '#d5d3d0' }}>
+            <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 28px' }}>
+              <div style={{ fontSize: 15, color: '#744FC6', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Reimbursement Claim Grand Total</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#4C4C9D', fontFamily: "'Outfit', sans-serif" }}>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
             </div>
           </div>
 
-          <div className="alert alert-info"><i className="ti ti-info-circle" />Once submitted, this claim will be forwarded to SRIC SECTION for review. Submit physical bills to the SRIC SECTION for further processing.</div>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <button className="btn btn-ghost" onClick={() => setStep(2)}>← Edit items</button>
-            <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>{loading ? 'Submitting...' : 'Submit claim →'}</button>
+          <div className="alert alert-info" style={{ fontSize: 15, padding: '14px 18px', borderLeft: '4px solid #3b82f6', background: '#eff6ff' }}>
+            <i className="ti ti-info-circle" style={{ fontSize: 18, marginTop: 2 }} />
+            <span>Once submitted, this claim will be forwarded to the <strong>SRIC SECTION</strong> for review. Please submit the physical bills and vouchers to the SRIC SECTION for final verification and matching.</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 }}>
+            <button className="btn btn-ghost" style={{ height: 48, padding: '0 24px' }} onClick={() => setStep(2)}><i className="ti ti-arrow-left" style={{ marginRight: 6 }} /> Edit items</button>
+            <button className="btn btn-primary" style={{ height: 48, padding: '0 28px' }} onClick={handleSubmit} disabled={loading}>
+              <i className="ti ti-circle-check" style={{ marginRight: 6, fontSize: 16 }} /> {loading ? 'Submitting...' : 'Submit Claim →'}
+            </button>
           </div>
         </div>
       )}

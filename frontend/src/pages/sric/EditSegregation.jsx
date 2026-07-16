@@ -231,28 +231,40 @@ export default function SricEditSegregation() {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}><i className="ti ti-arrow-left" /></button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)} style={{ width: 40, height: 40, padding: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="ti ti-arrow-left" style={{ fontSize: 18 }} /></button>
         <h1 className="page-title" style={{ margin: 0 }}>Edit Segregation — {claim.claim_no}</h1>
       </div>
 
-      {error && <div className="alert alert-error"><i className="ti ti-alert-circle" />{error}</div>}
+      {error && <div className="alert alert-error" style={{ fontSize: 15, padding: '14px 18px' }}><i className="ti ti-alert-circle" style={{ fontSize: 18 }} />{error}</div>}
       {validationErrors.map((errText, errIdx) => (
-        <div key={errIdx} className="alert alert-error" style={{ marginBottom: 12 }}>
-          <i className="ti ti-alert-circle" style={{ marginRight: 6 }} />
+        <div key={errIdx} className="alert alert-error" style={{ marginBottom: 16, fontSize: 14, padding: '12px 16px' }}>
+          <i className="ti ti-alert-circle" style={{ marginRight: 8, fontSize: 16 }} />
           {errText}
         </div>
       ))}
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-header">Claim details</div>
-        <div className="card-body" style={{ fontSize: 13 }}>
-          <div style={{ display: 'flex', gap: 24, marginBottom: 10 }}>
-            <div><span style={{ color: '#888' }}>PI:</span> <strong>{claim.faculty_name}</strong></div>
-            <div><span style={{ color: '#888' }}>Project:</span> <strong>{claim.project_no || '—'}</strong></div>
-            <div><span style={{ color: '#888' }}>Total Amount:</span> <strong>₹{parseFloat(claim.total_amount).toLocaleString('en-IN')}</strong></div>
+      <div className="card" style={{ marginBottom: 28 }}>
+        <div className="card-header" style={{ fontSize: 16, padding: '16px 32px' }}><i className="ti ti-info-square" style={{ marginRight: 8, color: '#744FC6' }} />General Claim Information</div>
+        <div className="card-body" style={{ padding: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24 }}>
+            <div>
+              <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Faculty (PI)</div>
+              <div style={{ fontWeight: 700, marginTop: 6, fontSize: 16, color: '#4C4C9D' }}>{claim.faculty_name}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Project Number</div>
+              <div style={{ fontWeight: 700, marginTop: 6, fontSize: 16, color: '#4C4C9D' }}>{claim.project_no || '—'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Claim Amount</div>
+              <div style={{ fontWeight: 700, marginTop: 6, fontSize: 16, color: '#4C4C9D' }}>₹{parseFloat(claim.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+            </div>
           </div>
-          <div><span style={{ color: '#888' }}>Purpose:</span> {claim.purpose}</div>
+          <div style={{ borderTop: '1px solid #f1f5f9', marginTop: 20, paddingTop: 16 }}>
+            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Purpose of Expenditure</div>
+            <div style={{ marginTop: 6, fontSize: 15, color: '#334155', fontWeight: 500 }}>{claim.purpose}</div>
+          </div>
         </div>
       </div>
 
@@ -264,17 +276,18 @@ export default function SricEditSegregation() {
         setTouchedFields={setTouchedFields}
       />
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-body" style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-          <button className="btn btn-ghost" onClick={() => navigate(-1)} disabled={submitting}>
+      <div className="card" style={{ marginTop: 28, background: '#f8fafc', border: '1.5px solid #d5d3d0' }}>
+        <div className="card-body" style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', padding: '20px 32px' }}>
+          <button className="btn btn-ghost" style={{ height: 48, padding: '0 24px' }} onClick={() => navigate(-1)} disabled={submitting}>
             Cancel
           </button>
           <button 
             className="btn btn-primary" 
+            style={{ height: 48, padding: '0 28px' }}
             onClick={handleSave} 
             disabled={submitting || validationErrors.length > 0}
           >
-            <i className="ti ti-device-floppy" style={{ marginRight: 6 }} />
+            <i className="ti ti-device-floppy" style={{ marginRight: 8, fontSize: 16 }} />
             {submitting ? 'Saving...' : 'Save & Return'}
           </button>
         </div>
@@ -317,8 +330,8 @@ function BillItemsTableEditable({ items = [], itemBudgetHeads, setItemBudgetHead
 
   return (
     <>
-      <div style={{ fontSize: 15, fontWeight: 600, color: '#444', marginBottom: 12 }}>
-        Bill Invoices ({invoices.length})
+      <div style={{ fontSize: 16, fontWeight: 700, color: '#4C4C9D', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <i className="ti ti-receipt" style={{ color: '#744FC6' }} /> Supporting Bill Invoices ({invoices.length})
       </div>
 
       {invoices.map((inv, idx) => {
@@ -327,167 +340,184 @@ function BillItemsTableEditable({ items = [], itemBudgetHeads, setItemBudgetHead
         const invTotal = inv.products.reduce((sum, p) => sum + p.prod_total, 0) + parseFloat(inv.other_charges || 0);
 
         return (
-          <div key={idx} className="card" style={{ marginBottom: 16 }}>
-            <div className="card-header">
-              Invoice {idx + 1} — No: <strong>{inv.bill_no}</strong>
+          <div key={idx} className="card" style={{ marginBottom: 28, border: '1px solid #d5d3d0' }}>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '16px 32px' }}>
+              <span style={{ fontWeight: 700 }}>Invoice #{idx + 1} — No: <strong style={{ color: '#744FC6' }}>{inv.bill_no}</strong></span>
+              <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>
+                <i className="ti ti-info-circle" style={{ marginRight: 4 }} /> Classification editor
+              </span>
             </div>
-            <div className="card-body">
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 13, marginBottom: 12, borderBottom: '1px solid #f0f0ee', paddingBottom: 10 }}>
-                <div><span style={{ color: '#888' }}>Vendor:</span> <strong>{inv.vendor_name}</strong></div>
-                <div><span style={{ color: '#888' }}>Vendor GSTIN:</span> {inv.gstin_vendor || '—'}</div>
+            <div className="card-body" style={{ padding: '32px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, fontSize: 14, marginBottom: 16, borderBottom: '1px solid #f1f5f9', paddingBottom: 16 }}>
+                <div><span style={{ color: '#64748b', fontWeight: 500 }}>Vendor Name:</span> <strong>{inv.vendor_name}</strong></div>
+                <div><span style={{ color: '#64748b', fontWeight: 500 }}>Vendor GSTIN:</span> {inv.gstin_vendor || '—'}</div>
               </div>
 
-              <table className="table" style={{ marginBottom: 12 }}>
+              <table className="table" style={{ marginBottom: 20 }}>
                 <thead>
                   <tr>
-                    <th style={{ width: 40 }}>#</th>
-                    <th>Description</th>
-                    <th style={{ width: 220 }}>Budget Head</th>
+                    <th style={{ width: 50 }}>#</th>
+                    <th>Item Description</th>
+                    <th style={{ width: 280 }}>Budget Head Allocation & Segregation</th>
                     <th style={{ width: 100, textAlign: 'right' }}>Qty</th>
-                    <th style={{ width: 120, textAlign: 'right' }}>Unit Price</th>
-                    <th style={{ width: 120, textAlign: 'right' }}>Total</th>
+                    <th style={{ width: 130, textAlign: 'right' }}>Unit Price</th>
+                    <th style={{ width: 130, textAlign: 'right' }}>Total Base</th>
                   </tr>
                 </thead>
                 <tbody>
                   {inv.products.map((p, pIdx) => (
                     <tr key={p.id || pIdx}>
                       <td>{pIdx + 1}</td>
-                      <td>{p.description}</td>
+                      <td style={{ fontWeight: 600, color: '#4C4C9D' }}>{p.description}</td>
                       <td>
-                        <select
-                          value={itemBudgetHeads[p.id]?.budget_head || 'Consumable'}
-                          onChange={e => {
-                            const existing = itemBudgetHeads[p.id] || {};
-                            const updated = {
-                              ...itemBudgetHeads,
-                              [p.id]: { ...existing, budget_head: e.target.value }
-                            };
-                            setItemBudgetHeads(applyAutoSegregation(updated, items, touchedFields));
-                          }}
-                          style={{ width: '100%', padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #d4d4d0' }}
-                        >
-                          {DEAN_BUDGET_HEADS.map(bh => (
-                            <option key={bh} value={bh}>{bh}</option>
-                          ))}
-                        </select>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <select
+                            value={itemBudgetHeads[p.id]?.budget_head || 'Consumable'}
+                            onChange={e => {
+                              const existing = itemBudgetHeads[p.id] || {};
+                              const updated = {
+                                ...itemBudgetHeads,
+                                [p.id]: { ...existing, budget_head: e.target.value }
+                              };
+                              setItemBudgetHeads(applyAutoSegregation(updated, items, touchedFields));
+                            }}
+                            style={{ width: '100%', padding: '8px 12px', fontSize: 14, borderRadius: 6, border: '1.5px solid #d5d3d0', height: 38 }}
+                          >
+                            {DEAN_BUDGET_HEADS.map(bh => (
+                              <option key={bh} value={bh}>{bh}</option>
+                            ))}
+                          </select>
 
-                        <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, background: '#fafafa', border: '1px solid #e4e4e7', borderRadius: 6, padding: 6 }}>
-                          <div>
-                            <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>CGST (₹)</label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min={0}
-                              placeholder="0.00"
-                              value={itemBudgetHeads[p.id]?.sric_cgst ?? ''}
-                              onChange={e => handleTaxChange(p.id, 'sric_cgst', e.target.value)}
-                              onWheel={e => e.target.blur()}
-                              readOnly={isTaxReadonly(p.id, items)}
-                              style={{ 
-                                width: '100%', 
-                                padding: '3px 6px', 
-                                fontSize: 11, 
-                                border: '1px solid #e4e4e7', 
-                                borderRadius: 4, 
-                                background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
-                                color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
-                                cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>SGST (₹)</label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min={0}
-                              placeholder="0.00"
-                              value={itemBudgetHeads[p.id]?.sric_sgst ?? ''}
-                              onChange={e => handleTaxChange(p.id, 'sric_sgst', e.target.value)}
-                              onWheel={e => e.target.blur()}
-                              readOnly={isTaxReadonly(p.id, items)}
-                              style={{ 
-                                width: '100%', 
-                                padding: '3px 6px', 
-                                fontSize: 11, 
-                                border: '1px solid #e4e4e7', 
-                                borderRadius: 4, 
-                                background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
-                                color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
-                                cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>IGST (₹)</label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min={0}
-                              placeholder="0.00"
-                              value={itemBudgetHeads[p.id]?.sric_igst ?? ''}
-                              onChange={e => handleTaxChange(p.id, 'sric_igst', e.target.value)}
-                              onWheel={e => e.target.blur()}
-                              readOnly={isTaxReadonly(p.id, items)}
-                              style={{ 
-                                width: '100%', 
-                                padding: '3px 6px', 
-                                fontSize: 11, 
-                                border: '1px solid #e4e4e7', 
-                                borderRadius: 4, 
-                                background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
-                                color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
-                                cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: 10, color: '#71717a', fontWeight: 500, marginBottom: 2 }}>Other (₹)</label>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min={0}
-                              placeholder="0.00"
-                              value={itemBudgetHeads[p.id]?.sric_other_charges ?? ''}
-                              onChange={e => handleTaxChange(p.id, 'sric_other_charges', e.target.value)}
-                              onWheel={e => e.target.blur()}
-                              readOnly={isTaxReadonly(p.id, items)}
-                              style={{ 
-                                width: '100%', 
-                                padding: '3px 6px', 
-                                fontSize: 11, 
-                                border: '1px solid #e4e4e7', 
-                                borderRadius: 4, 
-                                background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
-                                color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
-                                cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
-                              }}
-                            />
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: '#f8fafc', border: '1.5px solid #e1e0de', borderRadius: 8, padding: 10 }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 4 }}>
+                                {isTaxReadonly(p.id, items) ? 'CGST (Auto) 🔒' : 'CGST (₹)'}
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min={0}
+                                placeholder="0.00"
+                                value={itemBudgetHeads[p.id]?.sric_cgst ?? ''}
+                                onChange={e => handleTaxChange(p.id, 'sric_cgst', e.target.value)}
+                                onWheel={e => e.target.blur()}
+                                readOnly={isTaxReadonly(p.id, items)}
+                                style={{ 
+                                  width: '100%', 
+                                  padding: '6px 10px', 
+                                  fontSize: 13, 
+                                  border: '1.5px solid #d5d3d0', 
+                                  borderRadius: 6, 
+                                  background: isTaxReadonly(p.id, items) ? '#f1f5f9' : '#fff',
+                                  color: isTaxReadonly(p.id, items) ? '#475569' : '#000',
+                                  fontWeight: isTaxReadonly(p.id, items) ? 600 : 400,
+                                  cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 4 }}>
+                                {isTaxReadonly(p.id, items) ? 'SGST (Auto) 🔒' : 'SGST (₹)'}
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min={0}
+                                placeholder="0.00"
+                                value={itemBudgetHeads[p.id]?.sric_sgst ?? ''}
+                                onChange={e => handleTaxChange(p.id, 'sric_sgst', e.target.value)}
+                                onWheel={e => e.target.blur()}
+                                readOnly={isTaxReadonly(p.id, items)}
+                                style={{ 
+                                  width: '100%', 
+                                  padding: '6px 10px', 
+                                  fontSize: 13, 
+                                  border: '1.5px solid #d5d3d0', 
+                                  borderRadius: 6, 
+                                  background: isTaxReadonly(p.id, items) ? '#f1f5f9' : '#fff',
+                                  color: isTaxReadonly(p.id, items) ? '#475569' : '#000',
+                                  fontWeight: isTaxReadonly(p.id, items) ? 600 : 400,
+                                  cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 4 }}>
+                                {isTaxReadonly(p.id, items) ? 'IGST (Auto) 🔒' : 'IGST (₹)'}
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min={0}
+                                placeholder="0.00"
+                                value={itemBudgetHeads[p.id]?.sric_igst ?? ''}
+                                onChange={e => handleTaxChange(p.id, 'sric_igst', e.target.value)}
+                                onWheel={e => e.target.blur()}
+                                readOnly={isTaxReadonly(p.id, items)}
+                                style={{ 
+                                  width: '100%', 
+                                  padding: '6px 10px', 
+                                  fontSize: 13, 
+                                  border: '1.5px solid #d5d3d0', 
+                                  borderRadius: 6, 
+                                  background: isTaxReadonly(p.id, items) ? '#f1f5f9' : '#fff',
+                                  color: isTaxReadonly(p.id, items) ? '#475569' : '#000',
+                                  fontWeight: isTaxReadonly(p.id, items) ? 600 : 400,
+                                  cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: 11, color: '#475569', fontWeight: 700, marginBottom: 4 }}>
+                                {isTaxReadonly(p.id, items) ? 'Other (Auto) 🔒' : 'Other (₹)'}
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min={0}
+                                placeholder="0.00"
+                                value={itemBudgetHeads[p.id]?.sric_other_charges ?? ''}
+                                onChange={e => handleTaxChange(p.id, 'sric_other_charges', e.target.value)}
+                                onWheel={e => e.target.blur()}
+                                readOnly={isTaxReadonly(p.id, items)}
+                                style={{ 
+                                  width: '100%', 
+                                  padding: '6px 10px', 
+                                  fontSize: 13, 
+                                  border: '1.5px solid #d5d3d0', 
+                                  borderRadius: 6, 
+                                  background: isTaxReadonly(p.id, items) ? '#f1f5f9' : '#fff',
+                                  color: isTaxReadonly(p.id, items) ? '#475569' : '#000',
+                                  fontWeight: isTaxReadonly(p.id, items) ? 600 : 400,
+                                  cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
                       </td>
-                      <td style={{ textAlign: 'right' }}>{p.quantity} {p.quantity_unit || 'pcs'}</td>
-                      <td style={{ textAlign: 'right' }}>₹{parseFloat(p.unit_price || 0).toFixed(2)}</td>
-                      <td style={{ textAlign: 'right', fontWeight: 500 }}>₹{(parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)).toFixed(2)}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600 }}>{p.quantity} {p.quantity_unit || 'pcs'}</td>
+                      <td style={{ textAlign: 'right' }}>₹{parseFloat(p.unit_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 700, color: '#4C4C9D' }}>₹{(parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, fontSize: 12, color: '#1a1a1a', fontWeight: '600' }}>
-                <div>Base Amount: ₹{invBase.toFixed(2)}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, fontSize: 14, color: '#334155', fontWeight: '600' }}>
+                <div>Base Amount: ₹{invBase.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                 {invGst > 0 && (
-                  <div>
+                  <div style={{ color: '#475569' }}>
                     GST ({[
                       inv.cgst_amount > 0 && `CGST: ₹${inv.cgst_amount.toFixed(2)}`,
                       inv.sgst_amount > 0 && `SGST: ₹${inv.sgst_amount.toFixed(2)}`,
                       inv.igst_amount > 0 && `IGST: ₹${inv.igst_amount.toFixed(2)}`
-                    ].filter(Boolean).join(', ')}): ₹{invGst.toFixed(2)}
+                    ].filter(Boolean).join(', ')}): ₹{invGst.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
                 )}
-                {parseFloat(inv.other_charges) > 0 && <div>Other Charges: ₹{parseFloat(inv.other_charges).toFixed(2)}</div>}
-                <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 700, marginTop: 4 }}>
-                  Invoice Total: ₹{invTotal.toFixed(2)}
+                {parseFloat(inv.other_charges) > 0 && <div>Other Charges: ₹{parseFloat(inv.other_charges).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>}
+                <div style={{ fontSize: 16, color: '#744FC6', fontWeight: 800, marginTop: 4 }}>
+                  Invoice Total: ₹{invTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
                 {(() => {
                   let invoiceSegregatedCGST = 0;
@@ -506,19 +536,23 @@ function BillItemsTableEditable({ items = [], itemBudgetHeads, setItemBudgetHead
                   const igstMatched = Math.abs(invoiceSegregatedIGST - inv.igst_amount) <= 0.10;
                   const otherMatched = Math.abs(invoiceSegregatedOther - inv.other_charges) <= 0.10;
                   return (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, fontSize: 11, marginTop: 8 }}>
-                      <div style={{ color: cgstMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
-                        CGST: ₹{invoiceSegregatedCGST.toFixed(2)} segregated  /  ₹{inv.cgst_amount.toFixed(2)} entered
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, fontSize: 13, marginTop: 12, background: '#f8fafc', padding: 12, borderRadius: 8, border: '1.5px solid #d5d3d0', width: '100%', maxWidth: 400 }}>
+                      <div style={{ color: cgstMatched ? '#16a34a' : '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {cgstMatched ? <i className="ti ti-circle-check" /> : <i className="ti ti-alert-triangle" />}
+                        CGST: ₹{invoiceSegregatedCGST.toFixed(2)} / ₹{inv.cgst_amount.toFixed(2)} {cgstMatched ? 'Matched' : 'Mismatched'}
                       </div>
-                      <div style={{ color: sgstMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
-                        SGST: ₹{invoiceSegregatedSGST.toFixed(2)} segregated  /  ₹{inv.sgst_amount.toFixed(2)} entered
+                      <div style={{ color: sgstMatched ? '#16a34a' : '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {sgstMatched ? <i className="ti ti-circle-check" /> : <i className="ti ti-alert-triangle" />}
+                        SGST: ₹{invoiceSegregatedSGST.toFixed(2)} / ₹{inv.sgst_amount.toFixed(2)} {sgstMatched ? 'Matched' : 'Mismatched'}
                       </div>
-                      <div style={{ color: igstMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
-                        IGST: ₹{invoiceSegregatedIGST.toFixed(2)} segregated  /  ₹{inv.igst_amount.toFixed(2)} entered
+                      <div style={{ color: igstMatched ? '#16a34a' : '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {igstMatched ? <i className="ti ti-circle-check" /> : <i className="ti ti-alert-triangle" />}
+                        IGST: ₹{invoiceSegregatedIGST.toFixed(2)} / ₹{inv.igst_amount.toFixed(2)} {igstMatched ? 'Matched' : 'Mismatched'}
                       </div>
                       {inv.other_charges > 0 && (
-                        <div style={{ color: otherMatched ? '#27500A' : '#A32D2D', fontWeight: 600 }}>
-                          Other: ₹{invoiceSegregatedOther.toFixed(2)} segregated  /  ₹{inv.other_charges.toFixed(2)} entered
+                        <div style={{ color: otherMatched ? '#16a34a' : '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {otherMatched ? <i className="ti ti-circle-check" /> : <i className="ti ti-alert-triangle" />}
+                          Other: ₹{invoiceSegregatedOther.toFixed(2)} / ₹{inv.other_charges.toFixed(2)} {otherMatched ? 'Matched' : 'Mismatched'}
                         </div>
                       )}
                     </div>

@@ -151,7 +151,7 @@ export default function ProjectsManagement() {
           <button
             className="btn btn-primary"
             onClick={openCreateModal}
-            style={{ background: '#534AB7', color: '#fff', border: 'none', borderRadius: 6, height: 38, padding: '0 16px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ background: '#744FC6', color: '#fff', border: 'none', borderRadius: 6, height: 38, padding: '0 16px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
           >
             <i className="ti ti-plus" style={{ fontSize: 14 }} />
             Add New Project
@@ -179,7 +179,7 @@ export default function ProjectsManagement() {
       <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 20 }}>
         <div className="stat-card" style={{ background: '#fafaf9' }}>
           <div className="stat-label">Total Projects</div>
-          <div className="stat-value" style={{ color: '#3C3489' }}>{projects.length}</div>
+          <div className="stat-value" style={{ color: '#744FC6' }}>{projects.length}</div>
         </div>
         <div className="stat-card" style={{ background: '#fafaf9' }}>
           <div className="stat-label">Assigned Projects</div>
@@ -217,7 +217,7 @@ export default function ProjectsManagement() {
             <tbody>
               {filteredProjects.map(p => (
                 <tr key={p.id}>
-                  <td style={{ fontWeight: 500, color: '#534AB7' }}>{p.project_no}</td>
+                  <td style={{ fontWeight: 500, color: '#744FC6' }}>{p.project_no}</td>
                   <td style={{ fontSize: 12, lineHeight: 1.4 }}>{p.title}</td>
                   <td>
                     {p.pi_id ? (
@@ -302,7 +302,7 @@ export default function ProjectsManagement() {
                   {coPiEmployeeIdsInput.map(empId => {
                     const fac = faculties.find(f => f.employee_id === empId);
                     return (
-                      <span key={empId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#EEEDFE', color: '#534AB7', padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500 }}>
+                      <span key={empId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f3f0fc', color: '#744FC6', padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500 }}>
                         {fac ? fac.name : empId} ({empId})
                         <i className="ti ti-x" style={{ cursor: 'pointer', marginLeft: 2 }} onClick={() => {
                           setCoPiEmployeeIdsInput(coPiEmployeeIdsInput.filter(id => id !== empId));
@@ -375,7 +375,7 @@ export default function ProjectsManagement() {
                 <button
                   type="submit"
                   className="btn btn-primary btn-sm"
-                  style={{ background: '#534AB7', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}
+                  style={{ background: '#744FC6', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}
                   disabled={saveLoading}
                 >
                   {saveLoading ? 'Saving...' : 'Save Assignment'}
@@ -487,7 +487,7 @@ export default function ProjectsManagement() {
                   {newProjForm.co_pi_employee_ids?.map(empId => {
                     const fac = faculties.find(f => f.employee_id === empId);
                     return (
-                      <span key={empId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#EEEDFE', color: '#534AB7', padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500 }}>
+                      <span key={empId} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f3f0fc', color: '#744FC6', padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500 }}>
                         {fac ? fac.name : empId} ({empId})
                         <i className="ti ti-x" style={{ cursor: 'pointer', marginLeft: 2 }} onClick={() => {
                           setNewProjForm({
@@ -541,7 +541,7 @@ export default function ProjectsManagement() {
                 <button
                   type="submit"
                   className="btn btn-primary btn-sm"
-                  style={{ background: '#534AB7', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}
+                  style={{ background: '#744FC6', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}
                   disabled={createLoading}
                 >
                   {createLoading ? 'Creating...' : 'Create Project'}

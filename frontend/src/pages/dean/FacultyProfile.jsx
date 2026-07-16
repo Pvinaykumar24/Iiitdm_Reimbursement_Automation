@@ -85,7 +85,7 @@ export default function DeanFacultyProfileView() {
           <div className="card-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
             <div>
               <div style={{ fontSize: 11, color: '#888' }}>Total Claims Submitted</div>
-              <div style={{ fontSize: 24, fontWeight: 600, color: '#534AB7', marginTop: 4 }}>{claims.length}</div>
+              <div style={{ fontSize: 24, fontWeight: 600, color: '#744FC6', marginTop: 4 }}>{claims.length}</div>
             </div>
             <div style={{ borderTop: '1px solid #f0f0ee' }} />
             <div>
@@ -121,7 +121,7 @@ export default function DeanFacultyProfileView() {
                 const cfg = STATUS_CONFIG[c.status] || { label: c.status, badgeClass: 'badge-draft', icon: 'ti-file' };
                 return (
                   <tr key={c.id}>
-                    <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no}</td>
+                    <td style={{ color: '#744FC6', fontWeight: 500 }}>{c.claim_no}</td>
                     <td style={{ fontSize: 12 }}>{c.project_no || '—'}</td>
                     <td style={{ fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.purpose}</td>
                     <td style={{ fontWeight: 500 }}>₹{parseFloat(c.total_amount || 0).toLocaleString('en-IN')}</td>

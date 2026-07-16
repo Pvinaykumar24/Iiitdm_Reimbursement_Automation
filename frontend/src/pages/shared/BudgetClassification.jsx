@@ -5,7 +5,7 @@ const BUDGET_HEAD_COLORS = {
   'Consumable':              { bg: '#EAF3DE', color: '#27500A' },
   'Contingency':             { bg: '#FEF4E6', color: '#633806' },
   'Travel':                  { bg: '#E6F0FE', color: '#0C447C' },
-  'Equipment':               { bg: '#EEEDFE', color: '#3C3489' },
+  'Equipment':               { bg: '#f3f0fc', color: '#744FC6' },
   'Others':                  { bg: '#f5f5f4', color: '#444' },
   'Accountable Consumable':  { bg: '#FCF0F0', color: '#791F1F' },
   'Unclassified':            { bg: '#f5f5f4', color: '#888' },
@@ -93,7 +93,7 @@ export default function BudgetClassification() {
                   <i className="ti ti-calendar" style={{ marginRight: 6 }} />
                   Financial Year {year}
                 </span>
-                <span style={{ fontSize: 18, fontWeight: 700, color: '#3c3489' }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: '#744FC6' }}>
                   ₹{info.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>

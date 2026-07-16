@@ -60,13 +60,13 @@ export default function FacultyDashboard() {
         <div className="card-header">Recent claims</div>
         {loading ? <div style={{ padding: 24, textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
           : claims.length === 0
-            ? <div className="empty-state"><i className="ti ti-file-off" />No claims yet. <span style={{ color: '#534AB7', cursor: 'pointer' }} onClick={() => navigate('/faculty/claims/new')}>Create your first claim →</span></div>
+            ? <div className="empty-state"><i className="ti ti-file-off" />No claims yet. <span style={{ color: '#744FC6', cursor: 'pointer' }} onClick={() => navigate('/faculty/claims/new')}>Create your first claim →</span></div>
             : <table className="table">
               <thead><tr><th>Claim no.</th><th>Project Name</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
               <tbody>
                 {claims.slice(0, 10).map(c => (
                   <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/faculty/claims/${c.id}`)}>
-                    <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no || 'Draft'}</td>
+                    <td style={{ color: '#744FC6', fontWeight: 500 }}>{c.claim_no || 'Draft'}</td>
                     <td style={{ color: '#888', fontSize: 12 }}>{c.project_no || '—'}</td>
                     <td style={{ fontWeight: 500 }}>₹{parseFloat(c.total_amount).toLocaleString('en-IN')}</td>
                     <td>{statusBadge(c.status)}</td>

@@ -124,7 +124,7 @@ export default function FacultyProfile() {
             </div>
             <div>
               <div style={{ fontSize: 11, color: '#888' }}>Institute Email</div>
-              <div style={{ fontWeight: 600, marginTop: 2, color: '#534AB7' }}>{form.email}</div>
+              <div style={{ fontWeight: 600, marginTop: 2, color: '#744FC6' }}>{form.email}</div>
             </div>
           </div>
         </div>

@@ -21,7 +21,7 @@ export default function DeanDashboard() {
       {pending.length > 0 && (
         <div className="alert alert-warning" style={{ marginBottom: 16 }}>
           <i className="ti ti-clock" />{pending.length} claim{pending.length>1?'s':''} awaiting your review.
-          <span style={{ marginLeft: 8, color: '#534AB7', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate('/dean/pending')}>Review now →</span>
+          <span style={{ marginLeft: 8, color: '#744FC6', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => navigate('/dean/pending')}>Review now →</span>
         </div>
       )}
       <div className="card">
@@ -33,7 +33,7 @@ export default function DeanDashboard() {
               <tbody>
                 {pending.map(c => (
                   <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/dean/claims/${c.id}`)}>
-                    <td style={{ color: '#534AB7', fontWeight: 500 }}>{c.claim_no}</td>
+                    <td style={{ color: '#744FC6', fontWeight: 500 }}>{c.claim_no}</td>
                     <td>{c.faculty_name}<br/><span style={{ fontSize: 11, color: '#888' }}>{c.department}</span></td>
                     <td style={{ fontSize: 12 }}>{c.project_no || '—'}</td>
                     <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12 }}>{c.purpose}</td>

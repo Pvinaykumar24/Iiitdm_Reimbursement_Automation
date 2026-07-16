@@ -127,8 +127,8 @@ export default function ClaimDetail() {
             {(() => {
               const hasSric = ['SRIC_VERIFIED', 'DEAN_PENDING', 'DEAN_FORWARDED', 'PROCESSED'].includes(claim.status);
               const isRejected = claim.status === 'SRIC_REJECTED';
-              const bg = isRejected ? '#FCEBEB' : hasSric ? '#EAF3DE' : '#EEEDFE';
-              const col = isRejected ? '#791F1F' : hasSric ? '#27500A' : '#3C3489';
+              const bg = isRejected ? '#FCEBEB' : hasSric ? '#EAF3DE' : '#f3f0fc';
+              const col = isRejected ? '#791F1F' : hasSric ? '#27500A' : '#744FC6';
               const char = isRejected ? '✗' : hasSric ? '✓' : '•';
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, position: 'relative', width: '33.3%' }}>
@@ -143,8 +143,8 @@ export default function ClaimDetail() {
               const hasDean = ['DEAN_FORWARDED', 'PROCESSED'].includes(claim.status);
               const isRejected = claim.status === 'DEAN_REJECTED';
               const awaiting = ['DEAN_PENDING'].includes(claim.status);
-              const bg = isRejected ? '#FCEBEB' : hasDean ? '#EAF3DE' : awaiting ? '#EEEDFE' : '#f5f5f4';
-              const col = isRejected ? '#791F1F' : hasDean ? '#27500A' : awaiting ? '#3C3489' : '#888';
+              const bg = isRejected ? '#FCEBEB' : hasDean ? '#EAF3DE' : awaiting ? '#f3f0fc' : '#f5f5f4';
+              const col = isRejected ? '#791F1F' : hasDean ? '#27500A' : awaiting ? '#744FC6' : '#888';
               const char = isRejected ? '✗' : hasDean ? '✓' : awaiting ? '•' : '3';
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, position: 'relative', width: '33.3%' }}>
@@ -230,7 +230,7 @@ export default function ClaimDetail() {
                   </div>
                 )}
                 {parseFloat(inv.other_charges) > 0 && <div>Other Charges: ₹{parseFloat(inv.other_charges).toFixed(2)}</div>}
-                <div style={{ fontSize: 14, color: '#534AB7', fontWeight: 700, marginTop: 4 }}>
+                <div style={{ fontSize: 14, color: '#744FC6', fontWeight: 700, marginTop: 4 }}>
                   Invoice Total: ₹{invTotal.toFixed(2)}
                 </div>
               </div>
@@ -239,10 +239,10 @@ export default function ClaimDetail() {
         );
       })}
 
-      <div className="card" style={{ marginBottom: 16, background: '#EEEDFE', borderColor: '#d0cbf7' }}>
+      <div className="card" style={{ marginBottom: 16, background: '#f3f0fc', borderColor: '#d0cbf7' }}>
         <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px' }}>
-          <div style={{ fontSize: 14, color: '#26215C', fontWeight: 500 }}>Claim Grand Total</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#3c3489' }}>₹{parseFloat(claim.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+          <div style={{ fontSize: 14, color: '#4C4C9D', fontWeight: 500 }}>Claim Grand Total</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#744FC6' }}>₹{parseFloat(claim.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
         </div>
       </div>
 
@@ -252,7 +252,7 @@ export default function ClaimDetail() {
           <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {claim.audit_logs.map(log => (
               <div key={log.id} style={{ display: 'flex', gap: 12, fontSize: 13 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#534AB7', marginTop: 4, flexShrink: 0 }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#744FC6', marginTop: 4, flexShrink: 0 }} />
                 <div>
                   <div style={{ fontWeight: 500 }}>
                     {log.action.replace(/_/g, ' ')} {log.metadata?.version ? `(v${log.metadata.version})` : ''}

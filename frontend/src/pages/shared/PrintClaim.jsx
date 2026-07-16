@@ -138,7 +138,7 @@ export default function PrintClaim() {
       <div className="print-control-bar">
         <span style={{ fontWeight: '600', fontSize: '14px' }}>Official Claim Print Preview</span>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-primary" onClick={() => window.print()} style={{ background: '#534AB7', color: '#fff', padding: '6px 14px', borderRadius: 6, border: 'none', fontWeight: '500', fontSize: '13px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+          <button className="btn btn-primary" onClick={() => window.print()} style={{ background: '#744FC6', color: '#fff', padding: '6px 14px', borderRadius: 6, border: 'none', fontWeight: '500', fontSize: '13px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
             <i className="ti ti-printer" style={{ marginRight: 6, fontSize: '15px' }} />Print / Save PDF
           </button>
           <button className="btn btn-ghost" onClick={() => window.close()} style={{ background: '#fff', color: '#333', padding: '6px 14px', borderRadius: 6, border: '1px solid #cbd5e0', fontWeight: '500', fontSize: '13px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
@@ -378,7 +378,7 @@ export default function PrintClaim() {
             <h4 className="section-subtitle">2. Certification & Submission</h4>
             <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '14px 0 20px 0' }}>
               <div className="signature-card" style={{ width: '40%', border: '1px solid #a0aec0', borderRadius: '6px', padding: '10px', background: '#fff' }}>
-                <div className="sig-header" style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px', marginBottom: '8px', color: '#2d3748', textTransform: 'uppercase' }}>Submitted By</div>
+                <div className="sig-header" style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1px solid #e1e0de', paddingBottom: '4px', marginBottom: '8px', color: '#2d3748', textTransform: 'uppercase' }}>Submitted By</div>
                 <div className="sig-body" style={{ fontSize: '11px' }}>
                   <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{claim.faculty_name}</p>
                   <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>Principal Investigator (PI) / Co-PI</p>
@@ -547,7 +547,7 @@ export default function PrintClaim() {
           .sig-header {
             font-weight: bold;
             font-size: 11px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e1e0de;
             padding-bottom: 4px;
             margin-bottom: 8px;
             color: #2d3748;
@@ -606,7 +606,7 @@ export default function PrintClaim() {
           .spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #e2e8f0;
+            border: 3px solid #e1e0de;
             border-top-color: #3182ce;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
