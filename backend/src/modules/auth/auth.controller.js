@@ -33,5 +33,29 @@ const refreshToken = async (req, res, next) => {
   try { res.json(await service.refreshToken(req.body)); }
   catch (err) { next(err); }
 };
+const sendResetOtp = async (req, res, next) => {
+  try { res.json(await service.sendResetOtp(req.body)); }
+  catch (err) { next(err); }
+};
+const verifyResetOtp = async (req, res, next) => {
+  try { res.json(await service.verifyResetOtp(req.body)); }
+  catch (err) { next(err); }
+};
+const completeReset = async (req, res, next) => {
+  try { res.json(await service.completePasswordReset(req.body)); }
+  catch (err) { next(err); }
+};
 
-module.exports = { login, getMe, getProfile, updateProfile, sendOtp, verifyOtp, completeReg, refreshToken };
+module.exports = {
+  login,
+  getMe,
+  getProfile,
+  updateProfile,
+  sendOtp,
+  verifyOtp,
+  completeReg,
+  refreshToken,
+  sendResetOtp,
+  verifyResetOtp,
+  completeReset
+};

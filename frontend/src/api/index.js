@@ -83,6 +83,9 @@ export const authApi = {
   completeRegistration: (data) => api.post('/auth/register/complete', data),
   getProfile: () => api.get('/auth/profile'),
   updateProfile: (data) => api.patch('/auth/profile', data),
+  sendResetOtp: (data) => api.post('/auth/forgot-password/send-otp', data),
+  verifyResetOtp: (data) => api.post('/auth/forgot-password/verify-otp', data),
+  completeReset: (data) => api.post('/auth/forgot-password/complete', data),
 };
 
 export const claimsApi = {

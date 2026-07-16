@@ -5,6 +5,7 @@ const { sendEmail } = require('../notifications/notifications.service');
 
 // ── In-memory OTP store (email → { otp, expiresAt, verified, employeeId, name }) ──
 const otpStore = new Map();
+const resetStore = new Map();
 
 const generateOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
@@ -192,4 +193,89 @@ const updateProfile = async (userId, { name, phone, designation }) => {
   return rows[0];
 };
 
-module.exports = { login, getMe, getProfile, updateProfile, sendRegistrationOtp, verifyRegistrationOtp, completeRegistration, refreshToken };
+const sendResetOtp = async ({ email }) => {
+  if (!email || !email.trim()) {
+    throw Object.assign(new Error('Email address is required'), { status: 400 });
+  }
+  const emailLower = email.trim().toLowerCase();
+  const exists = await db.query('SELECT name FROM users WHERE email=$1 AND is_active=true', [emailLower]);
+  if (!exists.rows.length) {
+    throw Object.assign(new Error('No active account found with this email address.'), { status: 404 });
+  }
+  const userName = exists.rows[0].name;
+  const otp = generateOtp();
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  resetStore.set(emailLower, { otp, expiresAt, verified: false });
+
+  await sendEmail({
+    to: emailLower,
+    subject: 'Reset Password OTP — IIITDM Reimbursement Portal',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto">
+        <div style="background:#534AB7;padding:20px 24px;border-radius:8px 8px 0 0">
+          <div style="color:#fff;font-size:18px;font-weight:600">IIITDM Kancheepuram</div>
+          <div style="color:#c5c0f5;font-size:13px;margin-top:2px">Reimbursement Portal</div>
+        </div>
+        <div style="background:#fff;padding:24px;border:1px solid #e5e5e3;border-radius:0 0 8px 8px">
+          <p style="margin:0 0 16px;font-size:14px;color:#333">Dear <strong>${userName}</strong>,</p>
+          <p style="margin:0 0 16px;font-size:14px;color:#555">Use the OTP below to reset your account password. It is valid for <strong>10 minutes</strong>.</p>
+          <div style="text-align:center;margin:24px 0">
+            <div style="display:inline-block;background:#EEEDFE;border:2px dashed #534AB7;border-radius:10px;padding:16px 36px">
+              <div style="font-size:36px;font-weight:700;letter-spacing:10px;color:#26215C">${otp}</div>
+            </div>
+          </div>
+          <p style="font-size:12px;color:#999;margin:0">If you did not request this, please ignore this email and secure your account.</p>
+        </div>
+      </div>`,
+  });
+
+  return { message: 'Password reset OTP has been sent to your email address' };
+};
+
+const verifyResetOtp = async ({ email, otp }) => {
+  if (!email || !otp) throw Object.assign(new Error('Email and OTP are required'), { status: 400 });
+  const emailLower = email.trim().toLowerCase();
+  const record = resetStore.get(emailLower);
+  if (!record) throw Object.assign(new Error('No reset OTP request found. Please start again.'), { status: 400 });
+  if (Date.now() > record.expiresAt) {
+    resetStore.delete(emailLower);
+    throw Object.assign(new Error('OTP has expired. Please request a new one.'), { status: 400 });
+  }
+  if (record.otp !== otp) throw Object.assign(new Error('Incorrect OTP. Please try again.'), { status: 400 });
+
+  record.verified = true;
+  return { message: 'OTP verified successfully' };
+};
+
+const completePasswordReset = async ({ email, password }) => {
+  if (!email || !password) throw Object.assign(new Error('Email and password are required'), { status: 400 });
+  const emailLower = email.trim().toLowerCase();
+  const record = resetStore.get(emailLower);
+  if (!record || !record.verified) {
+    throw Object.assign(new Error('Email verification is pending. Please verify OTP first.'), { status: 400 });
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  await db.query(
+    'UPDATE users SET password = $1 WHERE email = $2 AND is_active = true',
+    [hash, emailLower]
+  );
+
+  resetStore.delete(emailLower);
+  return { message: 'Password reset successfully. You can now login.' };
+};
+
+module.exports = {
+  login,
+  getMe,
+  getProfile,
+  updateProfile,
+  sendRegistrationOtp,
+  verifyRegistrationOtp,
+  completeRegistration,
+  refreshToken,
+  sendResetOtp,
+  verifyResetOtp,
+  completePasswordReset
+};

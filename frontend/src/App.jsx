@@ -5,6 +5,7 @@ import ToastContainer from './components/common/ToastContainer';
 
 import LoginPage from './pages/auth/Login';
 import RegisterPage from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import FacultyLayout from './components/layout/FacultyLayout';
 import SricLayout from './components/layout/SricLayout';
 import DeanLayout from './components/layout/DeanLayout';
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/" element={<RoleRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         <Route path="/faculty" element={
           <ProtectedRoute role="FACULTY"><FacultyLayout /></ProtectedRoute>

@@ -45,7 +45,10 @@ export default function Login() {
                 <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@iiitdm.ac.in" required />
               </div>
               <div className="form-group">
-                <label className="form-label">Password</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+                  <Link to="/forgot-password" style={{ fontSize: 12, color: '#534AB7', textDecoration: 'none', fontWeight: 500 }}>Forgot password?</Link>
+                </div>
                 <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" required />
               </div>
               <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 4 }} disabled={loading}>

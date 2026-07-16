@@ -25,16 +25,25 @@ const completeRegSchema = {
   password: { required: true, type: 'string', minLength: 6 },
 };
 
-router.post('/login',                  rateLimit(15 * 60 * 1000, 100, 'Too many login attempts. Please try again after 15 minutes.'), validate(loginSchema), ctrl.login);
+const sendResetSchema = {
+  email: { required: true, type: 'string', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+};
 
-router.post('/refresh',                ctrl.refreshToken);
-router.get('/me',                      verifyToken, ctrl.getMe);
-router.get('/profile',                 verifyToken, ctrl.getProfile);
-router.patch('/profile',               verifyToken, ctrl.updateProfile);
+router.post('/login',                      rateLimit(15 * 60 * 1000, 100, 'Too many login attempts. Please try again after 15 minutes.'), validate(loginSchema), ctrl.login);
+
+router.post('/refresh',                    ctrl.refreshToken);
+router.get('/me',                          verifyToken, ctrl.getMe);
+router.get('/profile',                     verifyToken, ctrl.getProfile);
+router.patch('/profile',                   verifyToken, ctrl.updateProfile);
 
 // Faculty self-registration via OTP
-router.post('/register/send-otp',      rateLimit(10 * 60 * 1000, 100, 'Too many OTP requests. Please try again after 10 minutes.'), validate(sendOtpSchema), ctrl.sendOtp);
-router.post('/register/verify-otp',    validate(verifyOtpSchema), ctrl.verifyOtp);
-router.post('/register/complete',      validate(completeRegSchema), ctrl.completeReg);
+router.post('/register/send-otp',          rateLimit(10 * 60 * 1000, 100, 'Too many OTP requests. Please try again after 10 minutes.'), validate(sendOtpSchema), ctrl.sendOtp);
+router.post('/register/verify-otp',        validate(verifyOtpSchema), ctrl.verifyOtp);
+router.post('/register/complete',          validate(completeRegSchema), ctrl.completeReg);
+
+// Forgot Password Flow
+router.post('/forgot-password/send-otp',   rateLimit(10 * 60 * 1000, 100, 'Too many OTP requests. Please try again after 10 minutes.'), validate(sendResetSchema), ctrl.sendResetOtp);
+router.post('/forgot-password/verify-otp', validate(verifyOtpSchema), ctrl.verifyResetOtp);
+router.post('/forgot-password/complete',   validate(completeRegSchema), ctrl.completeReset);
 
 module.exports = router;
