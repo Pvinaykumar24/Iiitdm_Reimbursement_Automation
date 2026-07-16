@@ -251,7 +251,7 @@ const groupItemsByInvoice = (items = []) => {
     groups[key].igst_amount += igst;
     groups[key].other_charges += other;
 
-    const prodTotal = base + cgst + sgst + igst;
+    const prodTotal = base + cgst + sgst + igst + other;
 
     groups[key].products.push({
       ...it,
@@ -274,7 +274,7 @@ function BillItemsTable({ items = [], totalAmount }) {
       {invoices.map((inv, idx) => {
         const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)), 0);
         const invGst = inv.cgst_amount + inv.sgst_amount + inv.igst_amount;
-        const invTotal = inv.products.reduce((sum, p) => sum + p.prod_total, 0) + parseFloat(inv.other_charges || 0);
+        const invTotal = inv.products.reduce((sum, p) => sum + p.prod_total, 0);
 
         return (
           <div key={idx} className="card" style={{ marginBottom: 16 }}>
@@ -364,9 +364,9 @@ function BillItemsTable({ items = [], totalAmount }) {
 
 function ItemDetailModal({ item, onClose }) {
   const base = parseFloat(item.unit_price || 0) * parseFloat(item.quantity || 1);
-  const cgstAmt = (base * parseFloat(item.cgst_percent || 0)) / 100;
-  const sgstAmt = (base * parseFloat(item.sgst_percent || 0)) / 100;
-  const igstAmt = (base * parseFloat(item.igst_percent || 0)) / 100;
+  const cgstAmt = parseFloat(item.cgst_amount || 0);
+  const sgstAmt = parseFloat(item.sgst_amount || 0);
+  const igstAmt = parseFloat(item.igst_amount || 0);
   const otherCharges = parseFloat(item.other_charges || 0);
   const total = base + cgstAmt + sgstAmt + igstAmt + otherCharges;
 
@@ -374,7 +374,10 @@ function ItemDetailModal({ item, onClose }) {
   const classifiedSgst = item.sric_sgst !== null && item.sric_sgst !== undefined ? parseFloat(item.sric_sgst) : null;
   const classifiedIgst = item.sric_igst !== null && item.sric_igst !== undefined ? parseFloat(item.sric_igst) : null;
   const classifiedOther = item.sric_other_charges !== null && item.sric_other_charges !== undefined ? parseFloat(item.sric_other_charges) : null;
-  const classifiedTotal = (classifiedCgst || 0) + (classifiedSgst || 0) + (classifiedIgst || 0) + (classifiedOther || 0) + base;
+  const classifiedTotal = (classifiedCgst !== null ? classifiedCgst : cgstAmt) + 
+                          (classifiedSgst !== null ? classifiedSgst : sgstAmt) + 
+                          (classifiedIgst !== null ? classifiedIgst : igstAmt) + 
+                          (classifiedOther !== null ? classifiedOther : otherCharges) + base;
 
   const Field = ({ label, value, full }) => (
     <div style={{ gridColumn: full ? '1 / -1' : undefined }}>

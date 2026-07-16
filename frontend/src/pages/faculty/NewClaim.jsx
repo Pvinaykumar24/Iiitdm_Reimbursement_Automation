@@ -15,28 +15,49 @@ const groupItemsByInvoice = (items = []) => {
         bill_no: it.bill_no,
         bill_date: it.bill_date ? new Date(it.bill_date).toISOString().split('T')[0] : '',
         gstin_vendor: it.gstin_vendor || '',
-        cgst_percent: parseFloat(it.cgst_percent) || '',
-        sgst_percent: parseFloat(it.sgst_percent) || '',
-        igst_percent: parseFloat(it.igst_percent) || '',
-        other_charges: parseFloat(it.other_charges) || '',
+        cgst_type: 'value',
+        sgst_type: 'value',
+        igst_type: 'value',
+        other_type: 'value',
+        cgst_value: 0,
+        sgst_value: 0,
+        igst_value: 0,
+        other_value: 0,
+        cgst_percent: '',
+        sgst_percent: '',
+        igst_percent: '',
+        other_percent: '',
         products: []
       };
     }
 
     const base = parseFloat(it.unit_price || 0) * (parseInt(it.quantity) || 0);
-    const cgst = base * parseFloat(it.cgst_percent || 0) / 100;
-    const sgst = base * parseFloat(it.sgst_percent || 0) / 100;
-    const igst = base * parseFloat(it.igst_percent || 0) / 100;
-    const prodTotal = base + cgst + sgst + igst;
+    const cgst = parseFloat(it.cgst_amount || 0);
+    const sgst = parseFloat(it.sgst_amount || 0);
+    const igst = parseFloat(it.igst_amount || 0);
+    const other = parseFloat(it.other_charges || 0);
+
+    groups[key].cgst_value += cgst;
+    groups[key].sgst_value += sgst;
+    groups[key].igst_value += igst;
+    groups[key].other_value += other;
 
     groups[key].products.push({
       description: it.description,
       quantity: it.quantity,
       quantity_unit: it.quantity_unit || 'pcs',
       unit_price: parseFloat(it.unit_price || 0),
-      total_amount: prodTotal
+      total_amount: base
     });
   });
+
+  Object.values(groups).forEach(inv => {
+    inv.cgst_value = inv.cgst_value > 0 ? String(inv.cgst_value) : '';
+    inv.sgst_value = inv.sgst_value > 0 ? String(inv.sgst_value) : '';
+    inv.igst_value = inv.igst_value > 0 ? String(inv.igst_value) : '';
+    inv.other_value = inv.other_value > 0 ? String(inv.other_value) : '';
+  });
+
   return Object.values(groups);
 };
 

@@ -12,22 +12,38 @@ export default function SricClaimReview() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [itemBudgetHeads, setItemBudgetHeads] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
 
   useEffect(() => {
     claimsApi.getById(id).then(r => {
       setClaim(r.data);
       const initialHeads = {};
-      const isPending = r.data.status === 'SRIC_PENDING';
+      const initialTouched = {};
       r.data.items?.forEach(it => {
         initialHeads[it.id] = {
           budget_head: it.budget_head || 'Consumable',
-          sric_cgst: isPending ? 0 : (it.sric_cgst !== null && it.sric_cgst !== undefined ? parseFloat(it.sric_cgst) : 0),
-          sric_sgst: isPending ? 0 : (it.sric_sgst !== null && it.sric_sgst !== undefined ? parseFloat(it.sric_sgst) : 0),
-          sric_igst: isPending ? 0 : (it.sric_igst !== null && it.sric_igst !== undefined ? parseFloat(it.sric_igst) : 0),
-          sric_other_charges: isPending ? 0 : (it.sric_other_charges !== null && it.sric_other_charges !== undefined ? parseFloat(it.sric_other_charges) : 0),
+          sric_cgst: it.sric_cgst !== null && it.sric_cgst !== undefined && parseFloat(it.sric_cgst) !== 0 ? parseFloat(it.sric_cgst) : '',
+          sric_sgst: it.sric_sgst !== null && it.sric_sgst !== undefined && parseFloat(it.sric_sgst) !== 0 ? parseFloat(it.sric_sgst) : '',
+          sric_igst: it.sric_igst !== null && it.sric_igst !== undefined && parseFloat(it.sric_igst) !== 0 ? parseFloat(it.sric_igst) : '',
+          sric_other_charges: it.sric_other_charges !== null && it.sric_other_charges !== undefined && parseFloat(it.sric_other_charges) !== 0 ? parseFloat(it.sric_other_charges) : '',
         };
+
+        if (it.sric_cgst !== null && it.sric_cgst !== undefined && parseFloat(it.sric_cgst) !== 0) {
+          initialTouched[`${it.id}_sric_cgst`] = true;
+        }
+        if (it.sric_sgst !== null && it.sric_sgst !== undefined && parseFloat(it.sric_sgst) !== 0) {
+          initialTouched[`${it.id}_sric_sgst`] = true;
+        }
+        if (it.sric_igst !== null && it.sric_igst !== undefined && parseFloat(it.sric_igst) !== 0) {
+          initialTouched[`${it.id}_sric_igst`] = true;
+        }
+        if (it.sric_other_charges !== null && it.sric_other_charges !== undefined && parseFloat(it.sric_other_charges) !== 0) {
+          initialTouched[`${it.id}_sric_other_charges`] = true;
+        }
       });
-      setItemBudgetHeads(initialHeads);
+      setTouchedFields(initialTouched);
+      const autoHeads = applyAutoSegregation(initialHeads, r.data.items, initialTouched);
+      setItemBudgetHeads(autoHeads);
     }).catch(console.error).finally(() => setLoading(false));
   }, [id]);
 
@@ -213,6 +229,8 @@ export default function SricClaimReview() {
         itemBudgetHeads={itemBudgetHeads}
         setItemBudgetHeads={setItemBudgetHeads}
         isPending={isPending}
+        touchedFields={touchedFields}
+        setTouchedFields={setTouchedFields}
       />
 
       {/* Segregation Summary */}
@@ -316,6 +334,72 @@ export default function SricClaimReview() {
 
 const DEAN_BUDGET_HEADS = ['Consumable', 'Contingency', 'Travel', 'Equipment', 'Others', 'Accountable Consumable'];
 
+const applyAutoSegregation = (currentHeads, items, touchedMap = {}) => {
+  if (!items || items.length === 0) return currentHeads;
+
+  const nextHeads = { ...currentHeads };
+  const invoices = {};
+  items.forEach(it => {
+    const key = it.bill_no || 'unknown';
+    if (!invoices[key]) invoices[key] = [];
+    invoices[key].push(it);
+  });
+
+  const fields = [
+    { sric: 'sric_cgst', faculty: 'cgst_amount' },
+    { sric: 'sric_sgst', faculty: 'sgst_amount' },
+    { sric: 'sric_igst', faculty: 'igst_amount' },
+    { sric: 'sric_other_charges', faculty: 'other_charges' }
+  ];
+
+  Object.keys(invoices).forEach(key => {
+    const group = invoices[key];
+
+    fields.forEach(f => {
+      let facultyTotal = 0;
+      group.forEach(it => {
+        facultyTotal += parseFloat(it[f.faculty] || 0);
+      });
+
+      if (group.length === 1) {
+        const it = group[0];
+        const isTouched = touchedMap[`${it.id}_${f.sric}`];
+        if (isTouched) {
+          nextHeads[it.id] = {
+            ...(nextHeads[it.id] || {}),
+            [f.sric]: nextHeads[it.id]?.[f.sric] !== '' && nextHeads[it.id]?.[f.sric] !== undefined ? nextHeads[it.id][f.sric] : (facultyTotal !== 0 ? facultyTotal : '')
+          };
+        }
+      } else if (group.length > 1) {
+        const emptyItems = [];
+        let touchedSum = 0;
+
+        group.forEach(it => {
+          const val = nextHeads[it.id]?.[f.sric];
+          const isTouched = touchedMap[`${it.id}_${f.sric}`];
+          
+          if (!isTouched || val === '' || val === undefined) {
+            emptyItems.push(it);
+          } else {
+            touchedSum += parseFloat(val || 0);
+          }
+        });
+
+        if (emptyItems.length === 1) {
+          const targetIt = emptyItems[0];
+          const remainder = parseFloat((facultyTotal - touchedSum).toFixed(2));
+          nextHeads[targetIt.id] = {
+            ...(nextHeads[targetIt.id] || {}),
+            [f.sric]: remainder !== 0 ? remainder : ''
+          };
+        }
+      }
+    });
+  });
+
+  return nextHeads;
+};
+
 const groupItemsByInvoice = (items = []) => {
   const groups = {};
   items.forEach(it => {
@@ -339,7 +423,7 @@ const groupItemsByInvoice = (items = []) => {
     const sgst = parseFloat(it.sgst_amount || 0);
     const igst = parseFloat(it.igst_amount || 0);
     const other = parseFloat(it.other_charges || 0);
-    const prodTotal = base + cgst + sgst + igst;
+    const prodTotal = base + cgst + sgst + igst + other;
 
     groups[key].cgst_amount += cgst;
     groups[key].sgst_amount += sgst;
@@ -354,18 +438,37 @@ const groupItemsByInvoice = (items = []) => {
   return Object.values(groups);
 };
 
-function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudgetHeads, isPending }) {
+function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudgetHeads, isPending, touchedFields, setTouchedFields }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const invoices = groupItemsByInvoice(items);
 
   const handleTaxChange = (itemId, field, value) => {
-    setItemBudgetHeads(prev => ({
-      ...prev,
-      [itemId]: {
-        ...(prev[itemId] || {}),
-        [field]: value
+    const isCleared = value === '';
+    setTouchedFields(prev => {
+      const next = { ...prev };
+      if (isCleared) {
+        delete next[`${itemId}_${field}`];
+      } else {
+        next[`${itemId}_${field}`] = true;
       }
-    }));
+      return next;
+    });
+    setItemBudgetHeads(prev => {
+      const updated = {
+        ...prev,
+        [itemId]: {
+          ...(prev[itemId] || {}),
+          [field]: value
+        }
+      };
+      const updatedTouched = { ...touchedFields };
+      if (isCleared) {
+        delete updatedTouched[`${itemId}_${field}`];
+      } else {
+        updatedTouched[`${itemId}_${field}`] = true;
+      }
+      return applyAutoSegregation(updated, items, updatedTouched);
+    });
   };
 
   return (
@@ -377,7 +480,7 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
       {invoices.map((inv, idx) => {
         const invBase = inv.products.reduce((sum, p) => sum + (parseFloat(p.unit_price || 0) * parseInt(p.quantity || 1)), 0);
         const invGst = inv.cgst_amount + inv.sgst_amount + inv.igst_amount;
-        const invTotal = inv.products.reduce((sum, p) => sum + p.prod_total, 0) + parseFloat(inv.other_charges || 0);
+        const invTotal = inv.products.reduce((sum, p) => sum + p.prod_total, 0);
 
         return (
           <div key={idx} className="card" style={{ marginBottom: 16 }}>
@@ -422,10 +525,11 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                               value={itemBudgetHeads[p.id]?.budget_head || 'Consumable'}
                               onChange={e => {
                                 const existing = itemBudgetHeads[p.id] || {};
-                                setItemBudgetHeads({
+                                const updated = {
                                   ...itemBudgetHeads,
                                   [p.id]: { ...existing, budget_head: e.target.value }
-                                });
+                                };
+                                setItemBudgetHeads(applyAutoSegregation(updated, items, touchedFields));
                               }}
                               style={{ width: '100%', padding: '4px 8px', fontSize: 12, borderRadius: 6, border: '1px solid #d4d4d0' }}
                             >
@@ -590,9 +694,9 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
 
 function ItemDetailModal({ item, onClose }) {
   const base = parseFloat(item.unit_price || 0) * parseFloat(item.quantity || 1);
-  const cgstAmt = (base * parseFloat(item.cgst_percent || 0)) / 100;
-  const sgstAmt = (base * parseFloat(item.sgst_percent || 0)) / 100;
-  const igstAmt = (base * parseFloat(item.igst_percent || 0)) / 100;
+  const cgstAmt = parseFloat(item.cgst_amount || 0);
+  const sgstAmt = parseFloat(item.sgst_amount || 0);
+  const igstAmt = parseFloat(item.igst_amount || 0);
   const otherCharges = parseFloat(item.other_charges || 0);
   const total = base + cgstAmt + sgstAmt + igstAmt + otherCharges;
 
@@ -600,7 +704,10 @@ function ItemDetailModal({ item, onClose }) {
   const classifiedSgst = item.sric_sgst !== null && item.sric_sgst !== undefined ? parseFloat(item.sric_sgst) : null;
   const classifiedIgst = item.sric_igst !== null && item.sric_igst !== undefined ? parseFloat(item.sric_igst) : null;
   const classifiedOther = item.sric_other_charges !== null && item.sric_other_charges !== undefined ? parseFloat(item.sric_other_charges) : null;
-  const classifiedTotal = (classifiedCgst || 0) + (classifiedSgst || 0) + (classifiedIgst || 0) + (classifiedOther || 0) + base;
+  const classifiedTotal = (classifiedCgst !== null ? classifiedCgst : cgstAmt) + 
+                          (classifiedSgst !== null ? classifiedSgst : sgstAmt) + 
+                          (classifiedIgst !== null ? classifiedIgst : igstAmt) + 
+                          (classifiedOther !== null ? classifiedOther : otherCharges) + base;
 
   const Field = ({ label, value, full }) => (
     <div style={{ gridColumn: full ? '1 / -1' : undefined }}>

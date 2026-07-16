@@ -5,9 +5,11 @@ import { useAuthStore } from '../../store/authStore';
 
 export default function PrintClaim() {
   const { id } = useParams();
+  const { user } = useAuthStore();
   const queryParams = new URLSearchParams(window.location.search);
   const roleParam = queryParams.get('role');
   const isFaculty = roleParam ? roleParam === 'faculty' : (user?.role === 'FACULTY');
+  const isDean = roleParam === 'dean';
   const [claim, setClaim] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -313,25 +315,66 @@ export default function PrintClaim() {
               </tbody>
             </table>
 
-            <h4 className="section-subtitle" style={{ marginTop: '24px' }}>3. SRIC Cell Verification</h4>
-            <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '14px', marginBottom: '20px' }}>
-              <div style={{ width: '50%' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1.5px solid #000', paddingBottom: '6px', marginBottom: '12px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '0.04em' }}>SRIC Cell Verification & Approval</div>
-                <div style={{ fontSize: '11px' }}>
-                  <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{sricApproval ? sricApproval.actor_name : 'Verified By: SRIC Cell'}</p>
-                  <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>
-                    {sricApproval?.acted_at ? `Date: ${new Date(sricApproval.acted_at).toLocaleDateString('en-IN')}` : 'SRIC Recommendation'}
-                  </p>
-                  <div className="sig-line" style={{ borderBottom: '1.5px solid #000', marginTop: '90px' }} />
-                  <p style={{ fontSize: '11px', fontWeight: '600', margin: '8px 0 0 0' }}>Signature & Stamp of SRIC Cell</p>
+            {isDean ? (
+              <>
+                <h4 className="section-subtitle" style={{ marginTop: '24px' }}>3. Dean Remarks & Approval</h4>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '14px', marginBottom: '20px' }}>
+                  <div style={{ width: '50%' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1.5px solid #000', paddingBottom: '6px', marginBottom: '12px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Dean Verification & Approval</div>
+                    <div style={{ fontSize: '11px' }}>
+                      {deanApproval?.remarks ? (
+                        <div style={{ margin: '8px 0 16px 0', padding: '8px 12px', background: '#f7fafc', borderLeft: '3px solid #000', fontStyle: 'italic' }}>
+                          <strong>Dean Remarks:</strong> "{deanApproval.remarks}"
+                        </div>
+                      ) : (
+                        <p style={{ color: '#718096', fontStyle: 'italic', margin: '0 0 16px 0' }}>No remarks provided.</p>
+                      )}
+                      <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{deanApproval ? deanApproval.actor_name : 'Approved By: Dean (SR, IC & CE)'}</p>
+                      <p style={{ fontSize: '11px', color: '#4a5568', margin: '0' }}>
+                        {deanApproval?.acted_at ? `Date: ${new Date(deanApproval.acted_at).toLocaleDateString('en-IN')}` : 'Dean Decision'}
+                      </p>
+                      <div className="sig-line" style={{ borderBottom: '1.5px solid #000', marginTop: '90px' }} />
+                      <p style={{ fontSize: '11px', fontWeight: '600', margin: '8px 0 0 0' }}>Signature & Stamp of Dean (SR, IC & CE)</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            ) : (
+              <>
+                <h4 className="section-subtitle" style={{ marginTop: '24px' }}>3. SRIC Cell Verification</h4>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '14px', marginBottom: '20px' }}>
+                  <div style={{ width: '50%' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '11px', borderBottom: '1.5px solid #000', paddingBottom: '6px', marginBottom: '12px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '0.04em' }}>SRIC Cell Verification & Approval</div>
+                    <div style={{ fontSize: '11px' }}>
+                      <p style={{ fontWeight: '600', margin: '0 0 4px 0' }}>{sricApproval ? sricApproval.actor_name : 'Verified By: SRIC Cell'}</p>
+                      <p style={{ fontSize: '11px', color: '#4a5568', margin: '0 0 16px 0' }}>
+                        {sricApproval?.acted_at ? `Date: ${new Date(sricApproval.acted_at).toLocaleDateString('en-IN')}` : 'SRIC Recommendation'}
+                      </p>
+                      <div className="sig-line" style={{ borderBottom: '1.5px solid #000', marginTop: '90px' }} />
+                      <p style={{ fontSize: '11px', fontWeight: '600', margin: '8px 0 0 0' }}>Signature & Stamp of SRIC Cell</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
 
         {isFaculty && (
           <>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0 24px 0', pageBreakInside: 'avoid' }}>
+              <table style={{ borderCollapse: 'collapse', width: '45%', border: '1.5px solid #000' }}>
+                <tbody>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <td style={{ padding: '8px 12px', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '11px', borderRight: '1px solid #000' }}>Claim Grand Total:</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 'bold', fontSize: '14px' }}>
+                      ₹{parseFloat(claim.total_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
             <h4 className="section-subtitle">2. Certification & Submission</h4>
             <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '14px 0 20px 0' }}>
               <div className="signature-card" style={{ width: '40%', border: '1px solid #a0aec0', borderRadius: '6px', padding: '10px', background: '#fff' }}>
