@@ -363,13 +363,10 @@ const applyAutoSegregation = (currentHeads, items, touchedMap = {}) => {
 
       if (group.length === 1) {
         const it = group[0];
-        const isTouched = touchedMap[`${it.id}_${f.sric}`];
-        if (isTouched) {
-          nextHeads[it.id] = {
-            ...(nextHeads[it.id] || {}),
-            [f.sric]: nextHeads[it.id]?.[f.sric] !== '' && nextHeads[it.id]?.[f.sric] !== undefined ? nextHeads[it.id][f.sric] : (facultyTotal !== 0 ? facultyTotal : '')
-          };
-        }
+        nextHeads[it.id] = {
+          ...(nextHeads[it.id] || {}),
+          [f.sric]: facultyTotal !== 0 ? facultyTotal : ''
+        };
       } else if (group.length > 1) {
         const emptyItems = [];
         let touchedSum = 0;
@@ -398,6 +395,25 @@ const applyAutoSegregation = (currentHeads, items, touchedMap = {}) => {
   });
 
   return nextHeads;
+};
+
+const isTaxReadonly = (itemId, items) => {
+  if (!items || items.length === 0) return false;
+  const invoices = {};
+  items.forEach(it => {
+    const key = it.bill_no || 'unknown';
+    if (!invoices[key]) invoices[key] = [];
+    invoices[key].push(it);
+  });
+
+  let readonly = false;
+  Object.keys(invoices).forEach(key => {
+    const group = invoices[key];
+    if (group.length === 1 && group[0].id === itemId) {
+      readonly = true;
+    }
+  });
+  return readonly;
 };
 
 const groupItemsByInvoice = (items = []) => {
@@ -549,7 +565,17 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                                   value={itemBudgetHeads[p.id]?.sric_cgst ?? ''}
                                   onChange={e => handleTaxChange(p.id, 'sric_cgst', e.target.value)}
                                   onWheel={e => e.target.blur()}
-                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                  readOnly={isTaxReadonly(p.id, items)}
+                                  style={{ 
+                                    width: '100%', 
+                                    padding: '3px 6px', 
+                                    fontSize: 11, 
+                                    border: '1px solid #e4e4e7', 
+                                    borderRadius: 4, 
+                                    background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
+                                    color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
+                                    cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                  }}
                                 />
                               </div>
                               <div>
@@ -562,7 +588,17 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                                   value={itemBudgetHeads[p.id]?.sric_sgst ?? ''}
                                   onChange={e => handleTaxChange(p.id, 'sric_sgst', e.target.value)}
                                   onWheel={e => e.target.blur()}
-                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                  readOnly={isTaxReadonly(p.id, items)}
+                                  style={{ 
+                                    width: '100%', 
+                                    padding: '3px 6px', 
+                                    fontSize: 11, 
+                                    border: '1px solid #e4e4e7', 
+                                    borderRadius: 4, 
+                                    background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
+                                    color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
+                                    cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                  }}
                                 />
                               </div>
                               <div>
@@ -575,7 +611,17 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                                   value={itemBudgetHeads[p.id]?.sric_igst ?? ''}
                                   onChange={e => handleTaxChange(p.id, 'sric_igst', e.target.value)}
                                   onWheel={e => e.target.blur()}
-                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                  readOnly={isTaxReadonly(p.id, items)}
+                                  style={{ 
+                                    width: '100%', 
+                                    padding: '3px 6px', 
+                                    fontSize: 11, 
+                                    border: '1px solid #e4e4e7', 
+                                    borderRadius: 4, 
+                                    background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
+                                    color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
+                                    cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                  }}
                                 />
                               </div>
                               <div>
@@ -588,7 +634,17 @@ function BillItemsTable({ items = [], totalAmount, itemBudgetHeads, setItemBudge
                                   value={itemBudgetHeads[p.id]?.sric_other_charges ?? ''}
                                   onChange={e => handleTaxChange(p.id, 'sric_other_charges', e.target.value)}
                                   onWheel={e => e.target.blur()}
-                                  style={{ width: '100%', padding: '3px 6px', fontSize: 11, border: '1px solid #e4e4e7', borderRadius: 4, background: '#fff' }}
+                                  readOnly={isTaxReadonly(p.id, items)}
+                                  style={{ 
+                                    width: '100%', 
+                                    padding: '3px 6px', 
+                                    fontSize: 11, 
+                                    border: '1px solid #e4e4e7', 
+                                    borderRadius: 4, 
+                                    background: isTaxReadonly(p.id, items) ? '#f4f4f5' : '#fff',
+                                    color: isTaxReadonly(p.id, items) ? '#71717a' : '#000',
+                                    cursor: isTaxReadonly(p.id, items) ? 'not-allowed' : 'text'
+                                  }}
                                 />
                               </div>
                             </div>
